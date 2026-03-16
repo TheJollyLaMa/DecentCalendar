@@ -27,15 +27,15 @@ const TIMESLOT_MARKET_ABI = [
 ];
 
 function getNFTContract() {
-  if (!walletState.signer) throw new Error('Wallet not connected');
+  if (!window._walletSigner) throw new Error('Wallet not connected');
   if (!CONTRACT_ADDRESSES.TimeslotNFT) throw new Error('TimeslotNFT address not configured');
-  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotNFT, TIMESLOT_NFT_ABI, walletState.signer);
+  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotNFT, TIMESLOT_NFT_ABI, window._walletSigner);
 }
 
 function getMarketContract() {
-  if (!walletState.signer) throw new Error('Wallet not connected');
+  if (!window._walletSigner) throw new Error('Wallet not connected');
   if (!CONTRACT_ADDRESSES.TimeslotMarket) throw new Error('TimeslotMarket address not configured');
-  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotMarket, TIMESLOT_MARKET_ABI, walletState.signer);
+  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotMarket, TIMESLOT_MARKET_ABI, window._walletSigner);
 }
 
 /**

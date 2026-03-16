@@ -53,8 +53,8 @@ function getVisibleEvents() {
  * Reload events from localStorage for the connected wallet and refresh.
  */
 async function loadAndRenderMyEvents() {
-  if (!walletState.address) return;
-  myEvents = loadMyEvents(walletState.address);
+  if (!window._walletAddress) return;
+  myEvents = loadMyEvents(window._walletAddress);
   refreshCalendarToggle();
   refreshCalendar();
 }
@@ -88,6 +88,22 @@ function clearCalendarEvents() {
 }
 
 /**
+ * Setter: update the imported/other events array.
+ * Called from Calendar.js (ES module) to update this global variable.
+ */
+function setOtherEvents(events) {
+  otherEvents = events;
+}
+
+/**
+ * Setter: update the current lookup address.
+ * Called from Calendar.js (ES module) to update this global variable.
+ */
+function setCurrentLookupAddress(address) {
+  currentLookupAddress = address;
+}
+
+/**
  * Handle a click on a calendar event.
  * - If it's a public event with an hourly rate and the viewer is NOT the owner → booking flow
  * - If the viewer IS the owner → confirmation/meeting room flow
@@ -101,9 +117,9 @@ function handleEventClick(info) {
   console.log('Clicked event:', fcEvent.title, props);
 
   const isOwner =
-    walletState.address &&
+    window._walletAddress &&
     props.creator &&
-    walletState.address.toLowerCase() === props.creator.toLowerCase();
+    window._walletAddress.toLowerCase() === props.creator.toLowerCase();
 
   // Owner clicking their own booked event → confirm/meeting room
   if (isOwner && props.status === 'pending') {
@@ -238,7 +254,7 @@ function refreshCalendarToggle() {
   const toggle = document.getElementById('calendar-toggle');
   if (!toggle) return;
 
-  const addr = walletState.address || '';
+  const addr = window._walletAddress || '';
   const lookupAddr = currentLookupAddress || '';
 
   toggle.innerHTML = `

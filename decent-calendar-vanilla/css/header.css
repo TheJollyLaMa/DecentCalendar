@@ -1,0 +1,34 @@
+/* =========================================================
+   header.css — BigNuten-compatible header styles
+   Used by shadow DOM components: <app-header>, <app-title>,
+   <wallet-connect>, <ipfs-status>
+   ========================================================= */
+
+/* These host-level rules apply when this stylesheet is linked
+   inside a shadow root via <link rel="stylesheet" href="css/header.css">. */
+
+:host {
+  display: block;
+}
+
+/* ---- Global shimmer for icon rings ---- */
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.7));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 1));
+  }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg)   translateX(46px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(46px) rotate(-360deg); }
+}
+
+@keyframes glow-pulse {
+  from { box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+  to   { box-shadow: 0 0 25px rgba(0, 255, 255, 0.7); }
+}
