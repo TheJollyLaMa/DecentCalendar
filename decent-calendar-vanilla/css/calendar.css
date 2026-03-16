@@ -1,0 +1,210 @@
+/* =========================================================
+   calendar.css — Calendar, modal, and event styles
+   for DecentCalendar vanilla
+   ========================================================= */
+
+/* ---- Calendar Wrapper ---- */
+#calendar-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+#calendar {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+/* FullCalendar overrides */
+.fc .fc-toolbar-title {
+  color: #fff;
+  text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+.fc .fc-button {
+  background: black !important;
+  border: 1px solid #0ff !important;
+  color: #0ff !important;
+  font-family: inherit !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.fc .fc-button:hover,
+.fc .fc-button-active {
+  background: #0ff !important;
+  color: black !important;
+}
+
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-slot {
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
+}
+
+.fc .fc-daygrid-day:hover,
+.fc .fc-timegrid-slot:hover {
+  background: rgba(0, 255, 255, 0.1);
+}
+
+.fc .fc-daygrid-day-frame,
+.fc .fc-timegrid-slot-frame {
+  border: 1px solid rgba(0, 255, 255, 0.15);
+}
+
+.fc-event {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.fc-event:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 1);
+}
+
+/* ---- Event Type Classes ---- */
+.public-event {
+  background-color: rgba(0, 255, 0, 0.23) !important;
+  border: 1px solid rgba(0, 115, 255, 0.46) !important;
+  color: white !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+.private-event {
+  background-color: rgba(255, 230, 0, 0.36) !important;
+  border: 1px solid rgba(255, 0, 0, 0.8) !important;
+  color: white !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+.public-event:hover,
+.private-event:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 38, 255, 0.36);
+}
+
+.imported-event {
+  color: white;
+  font-size: 0.9rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+/* ---- Modal ---- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: black;
+  border: 2px solid #0ff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 30px #0ff;
+  min-width: 320px;
+  max-width: 480px;
+  width: 90%;
+  text-align: left;
+}
+
+.modal-content h3 {
+  color: white;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  text-shadow: 0 0 8px #0ff;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 12px;
+  color: #0ff;
+  font-size: 0.95rem;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="datetime-local"],
+.modal-content input[type="date"],
+.modal-content input[type="time"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  margin-top: 4px;
+  font-size: 1rem;
+  border: 1px solid #0ff;
+  border-radius: 5px;
+  background: #111;
+  color: white;
+  font-family: inherit;
+}
+
+.checkbox-group {
+  margin: 15px 0;
+}
+
+.checkbox-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #0ff;
+}
+
+.modal-content button {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 2px solid #0ff;
+  border-radius: 5px;
+  background: black;
+  color: #0ff;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.modal-content button:hover {
+  background: #0ff;
+  color: black;
+}
+
+/* booking details */
+#booking-details,
+#confirm-details {
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+#booking-details strong,
+#confirm-details strong {
+  color: #0ff;
+}
+
+/* ---- Meeting Modal ---- */
+#meeting-modal .modal-content {
+  max-width: 640px;
+}
+
+#meeting-modal video {
+  border: 1px solid #0ff;
+  box-shadow: 0 0 10px #0ff;
+}
+
+#meeting-controls {
+  margin: 12px 0;
+  text-align: center;
+}
