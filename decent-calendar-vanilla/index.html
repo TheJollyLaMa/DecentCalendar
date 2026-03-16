@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🗓️ Decent Calendar 🗓️</title>
+    <link rel="icon" type="image/png" href="img/IPFS_Logo.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/calendar.css" />
+
+    <!-- App Config -->
+    <script src="decent.config.js"></script>
+
+    <!-- ethers v6 -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <!-- PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+  <!-- @web3-storage browser.min.js hosted in JollySimSiddhi space on web3.Storage -->
+  <script src="https://bafybeicqxq54ncvkxvwdbov6ljgtyyrcpmek3ic2fxrwwsigmh4ud4s2mu.ipfs.w3s.link/browser.min.js"></script>
+
+  <!-- HEADER -->
+  <app-header></app-header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main id="calendar-main">
+    <div id="calendar-controls">
+      <div class="address-input">
+        <input id="lookup-address" type="text" placeholder="Enter wallet address to view their calendar" />
+        <button id="fetch-events-btn">Fetch Public Events</button>
+      </div>
+      <div id="calendar-toggle"></div>
+      <button id="add-event-btn" class="add-event-button">+</button>
+      <button id="mint-timeslot-btn" class="mint-button">⛏️ Mint Timeslot</button>
+    </div>
+    <div id="calendar-wrapper">
+      <div id="calendar"></div>
+    </div>
+  </main>
+
+  <!-- Add Event Modal -->
+  <div id="add-event-modal" class="modal modal-hidden">
+    <div class="modal-content">
+      <h3>Add New Event</h3>
+      <label>Event Title:
+        <input type="text" id="event-title" placeholder="Event title" />
+      </label>
+      <label>Start Time:
+        <input type="datetime-local" id="event-start" />
+      </label>
+      <label>End Time:
+        <input type="datetime-local" id="event-end" />
+      </label>
+      <label>Hourly Rate (POL):
+        <input type="number" id="event-hourly-rate" step="0.01" placeholder="0" />
+      </label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="event-is-public" checked /> Public Event</label>
+        <label><input type="checkbox" id="event-is-private" /> Private Event</label>
+      </div>
+      <button id="save-event-btn">Add Event</button>
+      <button id="cancel-event-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Mint Timeslot Modal -->
+  <div id="mint-modal" class="modal modal-hidden">
+    <div class="modal-content">
+      <h3>⛏️ Mint Timeslot NFT</h3>
+      <label>Start Time:
+        <input type="datetime-local" id="mint-start" />
+      </label>
+      <label>End Time:
+        <input type="datetime-local" id="mint-end" />
+      </label>
+      <label>Hourly Rate (POL):
+        <input type="number" id="mint-hourly-rate" step="0.01" placeholder="0" />
+      </label>
+      <button id="confirm-mint-btn">Mint</button>
+      <button id="cancel-mint-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Booking Confirm Modal -->
+  <div id="booking-modal" class="modal modal-hidden">
+    <div class="modal-content">
+      <h3>Book This Timeslot</h3>
+      <p id="booking-details"></p>
+      <div class="payment-options">
+        <label><input type="radio" name="payment" value="pol" checked /> Pay in POL</label>
+        <label><input type="radio" name="payment" value="ommm" /> Pay in Ommm</label>
+      </div>
+      <button id="confirm-booking-btn">Confirm &amp; Pay</button>
+      <button id="cancel-booking-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Meeting Room Modal -->
+  <div id="meeting-modal" class="modal meeting-modal modal-hidden">
+    <h3>Meeting Room</h3>
+    <video id="meeting-video" autoplay playsinline style="width:100%;"></video>
+    <p id="meeting-status">Waiting for participants...</p>
+    <button id="join-meeting-btn" class="hidden">Join Meeting</button>
+    <button id="close-meeting-btn">Close</button>
+  </div>
+
+  <!-- MAIN SCRIPT LOADER — ES module just like BigNuten -->
+  <script type="module" src="js/main.js"></script>
+
+  <!-- DecentCalendar Web Component — initialises calendar logic (no shadow DOM) -->
+  <decent-calendar></decent-calendar>
+
+</body>
+</html>
