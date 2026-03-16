@@ -1,0 +1,232 @@
+/* "+" Button Styling */
+.add-event-button {
+    position: absolute;
+    z-index: 1000; /* Ensure the button is above other elements */
+    top: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0ff;
+    background: black;
+    border: 2px solid #0ff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+    cursor: pointer; /* Add this */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+  
+.add-event-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #0ff, 0 0 30px #00f;
+}
+  
+/* Modal Styling */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: black;
+    border: 2px solid #0ff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #0ff;
+    z-index: 1000;
+}
+  
+.modal-content h3 {
+    color: white;
+    margin-bottom: 20px;
+}
+  
+.modal-content label {
+    display: block;
+    margin-bottom: 10px;
+    color: #0ff;
+}
+  
+.modal-content input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    border: 1px solid #0ff;
+    border-radius: 5px;
+    background: black;
+    color: white;
+}
+  
+.checkbox-group {
+    margin: 15px 0;
+}
+  
+.checkbox-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #0ff;
+}
+  
+.modal-content button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 1rem;
+    border: 2px solid #0ff;
+    border-radius: 5px;
+    background: black;
+    color: #0ff;
+    cursor: pointer;
+}
+  
+.modal-content button:hover {
+    background: #0ff;
+    color: black;
+}
+
+.address-input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+  
+.address-input input {
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #0ff;
+    border-radius: 5px;
+    background: black;
+    color: white;
+    width: 300px;
+    text-align: center;
+}
+  
+.address-input button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: 2px solid #0ff;
+    border-radius: 5px;
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+  
+.address-input button:hover {
+    background: #0ff;
+    color: black;
+}
+
+/* Calendar Wrapper Styling */
+.calendar-wrapper .fc .fc-daygrid-day {
+    background: rgba(0, 0, 0, 0.3); /* Slight transparency for day slots */
+    transition: background 0.3s ease;
+}
+  
+.calendar-wrapper .fc .fc-daygrid-day:hover {
+    background: rgba(0, 255, 255, 0.2); /* Slight highlight on hover */
+}
+  
+.calendar-wrapper .fc .fc-timegrid-slot {
+    background: rgba(0, 0, 0, 0.3); /* Slight transparency for time slots */
+    transition: background 0.3s ease;
+}
+  
+.calendar-wrapper .fc .fc-timegrid-slot:hover {
+    background: rgba(0, 255, 255, 0.2); /* Slight highlight on hover */
+}
+
+/* Styling for events */
+.calendar-wrapper .fc-event {
+    background: rgba(0, 255, 255, 0.5); /* Slight transparency for events */
+    border: 1px solid rgba(0, 255, 255, 0.8);
+    color: white;
+    font-size: 1rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+  
+.calendar-wrapper .fc-event:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 1);
+}
+
+/* Calendar grid lines for clarity */
+.calendar-wrapper .fc .fc-daygrid-day-frame,
+.calendar-wrapper .fc .fc-timegrid-slot-frame {
+    border: 1px solid rgba(0, 255, 255, 0.2); /* Light grid lines */
+}
+
+/* Public Events */
+.public-event {
+    background-color: rgba(0, 255, 0, 0.232) !important; /* Semi-transparent green */
+    border: 1px solid rgba(0, 115, 255, 0.461) !important;
+    color: white !important;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Private Events */
+.private-event {
+    background-color: rgba(255, 230, 0, 0.356) !important; /* Semi-transparent red */
+    border: 1px solid rgba(255, 0, 0, 0.8) !important;
+    color: white !important;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover Effects for Both */
+.public-event:hover,
+.private-event:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 38, 255, 0.362);
+}
+
+
+.meeting-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: black;
+    border: 2px solid #0ff;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    box-shadow: 0 0 20px #0ff;
+  }
+  
+  .meeting-modal h3 {
+    color: #0ff;
+    text-align: center;
+  }
+
+/* Imported Events */
+.imported-event {
+    color: white;
+    font-size: 1rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.calendar-shower-wallet-addr {
+    display: inline;
+    font-size: 0.8rem !important; /* Smaller font size */
+    font-weight: bold;
+    color: #00fff29b;
+}
+
+.calendar-shower-wallet-addr .wallet-icons {
+    display: inline; /* Use inline-flex for proper alignment */
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.calendar-shower-wallet-addr .icon-small {
+    display: inline;
+    width: 20px;
+    height: 20px;
+}

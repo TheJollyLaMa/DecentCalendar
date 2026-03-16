@@ -1,0 +1,180 @@
+/* General Styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: chalkduster, sans-serif;
+  background: url('./assets/SecretPyramid.gif') no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Adds a faint dark overlay */
+  z-index: -1; /* Places it behind all other content */
+}
+
+/* App Container */
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Header Styling */
+.App-header {
+  padding: 20px;
+  position: relative;
+  z-index: 1; /* Ensures content stays above the background */
+}
+
+.wallet-info {
+  margin: 10px 0;
+}
+
+.wallet-address-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.wallet-address-part {
+  font-size: 1.5rem;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+}
+
+.wallet-icons {
+  display: flex;
+  gap: 5px;
+}
+
+.icon-small {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px #0ff);
+  animation: glow 1.5s infinite alternate;
+}
+
+/* Wallet Button Styling */
+.wallet-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wallet-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+}
+
+.wallet-logo {
+  width: 50px;
+  height: 50px;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.8));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.wallet-logo:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 20px rgba(0, 255, 255, 1));
+}
+
+/* Glow Animation */
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
+  }
+  to {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 1));
+  }
+}
+
+/* Calendar Container */
+.calendar-container {
+  padding: 20px;
+  max-width: 80%;
+  margin: auto;
+}
+
+.neon-text {
+  font-size: 2rem;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+  margin-bottom: 10px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.timezone-label {
+  font-size: 1.2rem;
+  color: #fff;
+  text-shadow: 0 0 5px #fff, 0 0 10px #0ff;
+}
+
+.timezone-select {
+  background: black;
+  color: #0ff;
+  border: 2px solid #0ff;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.timezone-select:hover {
+  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+.fc .fc-toolbar-title {
+  color: #fff;
+  text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+.fc-event {
+  font-size: 1rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px #fff;
+}
+
+/* Footer Styling */
+.App-footer {
+  margin-top: 20px;
+  color: #fff;
+  text-shadow: 0 0 5px #fff, 0 0 10px #0ff;
+  font-size: 0.9rem;
+  padding: 10px 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.App-footer img {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px #0ff);
+}
