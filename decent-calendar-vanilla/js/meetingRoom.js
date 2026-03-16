@@ -1,86 +1,132 @@
-/**
- * meetingRoom.js — PeerJS meeting room for DecentCalendar vanilla
- * Initialises a P2P video call using PeerJS (WebRTC).
- */
+/* meetingRoom.js — PeerJS video meeting room (vanilla JS port of MeetingRoom.js) */
 
-let _peer = null;
+let peerInstance = null;
 
 /**
- * Initialise a PeerJS meeting room.
- * @param {string} roomId - Unique room identifier (used as PeerJS peer ID for host)
- * @param {boolean} isHost - Whether this user is the meeting host
- * @param {HTMLVideoElement} videoEl - Video element to show remote stream
- * @returns {Peer} - The PeerJS peer instance
+ * Initialize a PeerJS meeting room.
+ * Fixes the React bug where meetingRoomID was never actually passed to PeerJS.
+ *
+ * @param {string} roomId - unique room ID (set per event at creation time)
+ * @param {boolean} isHost - true if the current user is the calendar owner
  */
-export function initMeetingRoom(roomId, isHost, videoEl) {
-  // Disconnect any existing peer session
-  if (_peer) {
-    _peer.disconnect();
-    _peer = null;
+function initMeetingRoom(roomId, isHost) {
+  const video = document.getElementById('meeting-video');
+  const controls = document.getElementById('meeting-controls');
+
+  if (!roomId) {
+    controls.innerHTML = '<p style="color:#f00;">Error: no meeting room ID provided.</p>';
+    return;
   }
 
-  const peer = new Peer(isHost ? roomId : undefined, {
+  // Clean up any existing peer
+  if (peerInstance) {
+    peerInstance.disconnect();
+    peerInstance = null;
+  }
+
+  peerInstance = new Peer(isHost ? roomId : undefined, {
     host: '0.peerjs.com',
     port: 443,
     secure: true,
   });
 
-  _peer = peer;
-
-  peer.on('open', (id) => {
+  peerInstance.on('open', (id) => {
     console.log(`PeerJS connected as: ${id}`);
   });
 
-  peer.on('error', (err) => {
+  peerInstance.on('error', (err) => {
     console.error('PeerJS error:', err);
+    if (err.type === 'unavailable-id') {
+      // Room ID already taken — connect as participant instead
+      startCall(roomId, video);
+    }
   });
 
   if (isHost) {
-    // Host: wait for incoming calls and answer with own stream
-    peer.on('call', (call) => {
+    controls.innerHTML = '<p style="color:#0ff;">Waiting for participants to join...</p>';
+
+    // Host answers incoming calls
+    peerInstance.on('call', (call) => {
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          // Show host's own video
+          video.srcObject = stream;
+          call.answer(stream);
+          call.on('stream', (remoteStream) => {
+            video.srcObject = remoteStream;
+          });
+          call.on('error', (err) => console.error('Call error:', err));
+        })
+        .catch((err) => {
+          console.error('Media access error:', err);
+          alert('Could not access camera/microphone.');
+        });
+    });
+  } else {
+    // Participant: show a Join button
+    controls.innerHTML = '';
+    const joinBtn = document.createElement('button');
+    joinBtn.textContent = 'Join Meeting';
+    joinBtn.style.cssText = 'padding:10px 20px;font-size:1rem;border:2px solid #0ff;border-radius:5px;background:black;color:#0ff;cursor:pointer;';
+    joinBtn.addEventListener('click', () => startCall(roomId, video));
+    controls.appendChild(joinBtn);
+
+    // Also listen for incoming calls (in case host calls participant first)
+    peerInstance.on('call', (call) => {
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
           call.answer(stream);
           call.on('stream', (remoteStream) => {
-            if (videoEl) videoEl.srcObject = remoteStream;
+            video.srcObject = remoteStream;
           });
         })
-        .catch((err) => console.error('Media access error:', err));
+        .catch((err) => {
+          console.error('Media access error:', err);
+          alert('Could not access camera/microphone.');
+        });
     });
   }
-
-  return peer;
 }
 
 /**
- * Join a meeting as a guest — call the host peer ID.
- * @param {string} roomId - Host's room/peer ID to call
- * @param {HTMLVideoElement} videoEl - Video element to show remote stream
+ * Start a call to the host's room.
+ * @param {string} roomId
+ * @param {HTMLVideoElement} video
  */
-export function joinMeeting(roomId, videoEl) {
-  if (!_peer) {
-    console.warn('No active peer session. Call initMeetingRoom first.');
-    return;
-  }
-
+function startCall(roomId, video) {
   navigator.mediaDevices
     .getUserMedia({ video: true, audio: true })
     .then((stream) => {
-      const call = _peer.call(roomId, stream);
+      video.srcObject = stream; // Show local preview while connecting
+      const call = peerInstance.call(roomId, stream);
+      if (!call) {
+        alert('Could not reach the host. Make sure they have the meeting open.');
+        return;
+      }
       call.on('stream', (remoteStream) => {
-        if (videoEl) videoEl.srcObject = remoteStream;
+        video.srcObject = remoteStream;
       });
+      call.on('error', (err) => console.error('Call error:', err));
     })
-    .catch((err) => console.error('Media access error:', err));
+    .catch((err) => {
+      console.error('Media access error:', err);
+      alert('Could not access camera/microphone: ' + err.message);
+    });
 }
 
 /**
- * Disconnect from the meeting room.
+ * Close and clean up the meeting room.
  */
-export function disconnectMeeting() {
-  if (_peer) {
-    _peer.disconnect();
-    _peer = null;
+function closeMeetingRoom() {
+  const video = document.getElementById('meeting-video');
+  if (video && video.srcObject) {
+    video.srcObject.getTracks().forEach((t) => t.stop());
+    video.srcObject = null;
+  }
+  if (peerInstance) {
+    peerInstance.disconnect();
+    peerInstance = null;
   }
 }

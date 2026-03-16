@@ -1,68 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>🗓️ Decent Calendar 🗓️</title>
-    <link rel="icon" type="image/png" href="img/IPFS_Logo.png" />
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/header.css" />
-    <link rel="stylesheet" href="css/calendar.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🗓️ Decent Calendar 🗓️</title>
+  <link rel="icon" type="image/png" href="assets/IPFS_Logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/calendar.css" />
 
-    <!-- App Config -->
-    <script src="decent.config.js"></script>
-
-    <!-- ethers v6 -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
-    <!-- FullCalendar -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <!-- PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- App config — loaded first so DECENT_CONFIG is available to all scripts -->
+  <script src="decent.config.js"></script>
 </head>
 <body>
 
-  <!-- @web3-storage browser.min.js hosted in JollySimSiddhi space on web3.Storage -->
-  <script src="https://bafybeicqxq54ncvkxvwdbov6ljgtyyrcpmek3ic2fxrwwsigmh4ud4s2mu.ipfs.w3s.link/browser.min.js"></script>
+  <!-- CDN Dependencies
+       For production deployments, add integrity="sha384-<hash>" to each script tag.
+       Compute hashes: curl -s <URL> | openssl dgst -sha384 -binary | openssl base64 -A
+       See: https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
+    crossorigin="anonymous"></script>
 
-  <!-- HEADER -->
+  <!-- Helper Globals (loaded before the ES module entry) -->
+  <script src="js/events.js"></script>
+  <script src="js/contract.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/meetingRoom.js"></script>
+  <script src="js/calendar.js"></script>
+
+  <!-- HEADER — Web Component (shadow DOM: ipfs-status, app-title, wallet-connect) -->
   <app-header></app-header>
 
   <!-- MAIN CONTENT AREA -->
-  <main id="calendar-main">
+  <main id="main-content">
     <div id="calendar-controls">
       <div class="address-input">
-        <input id="lookup-address" type="text" placeholder="Enter wallet address to view their calendar" />
+        <input
+          id="lookup-address"
+          type="text"
+          placeholder="Enter wallet address to view their calendar"
+        />
         <button id="fetch-events-btn">Fetch Public Events</button>
       </div>
       <div id="calendar-toggle"></div>
-      <button id="add-event-btn" class="add-event-button">+</button>
-      <button id="mint-timeslot-btn" class="mint-button">⛏️ Mint Timeslot</button>
+      <button id="add-event-btn" class="add-event-button" title="Add Event">+</button>
+      <button id="mint-timeslot-btn" class="mint-button" title="Mint Timeslot NFT">⛏️ Mint Timeslot</button>
     </div>
     <div id="calendar-wrapper">
       <div id="calendar"></div>
     </div>
   </main>
 
+  <!-- Footer -->
+  <footer class="App-footer">
+    <img src="assets/DecentSmartHome_Logo.png" alt="DecentSmartHome" class="icon-small" />
+    <img src="assets/Ommm_Token_Logo.png" alt="Ommm Token" class="icon-small" />
+    <p>Another creation by A Decent Agency to help the world be on the same page.</p>
+    <img src="assets/Ommm_Token_Logo.png" alt="Ommm Token" class="icon-small" />
+    <img src="assets/DecentSmartHome_Logo.png" alt="DecentSmartHome" class="icon-small" />
+  </footer>
+
   <!-- Add Event Modal -->
-  <div id="add-event-modal" class="modal modal-hidden">
+  <div id="add-event-modal" class="modal hidden">
     <div class="modal-content">
       <h3>Add New Event</h3>
-      <label>Event Title:
-        <input type="text" id="event-title" placeholder="Event title" />
+      <label>
+        Event Title:
+        <input type="text" id="event-title" name="title" placeholder="e.g. IT Consultation" />
       </label>
-      <label>Start Time:
-        <input type="datetime-local" id="event-start" />
+      <label>
+        Start Time:
+        <input type="datetime-local" id="event-start" name="start" />
       </label>
-      <label>End Time:
-        <input type="datetime-local" id="event-end" />
+      <label>
+        End Time:
+        <input type="datetime-local" id="event-end" name="end" />
       </label>
-      <label>Hourly Rate (POL):
-        <input type="number" id="event-hourly-rate" step="0.01" placeholder="0" />
+      <label>
+        Hourly Rate (POL):
+        <input type="number" id="event-rate" name="hourlyRate" step="0.001" min="0" placeholder="0.05" />
       </label>
       <div class="checkbox-group">
-        <label><input type="checkbox" id="event-is-public" checked /> Public Event</label>
-        <label><input type="checkbox" id="event-is-private" /> Private Event</label>
+        <label>
+          <input type="checkbox" id="event-public" name="isPublic" checked />
+          Public Event
+        </label>
+        <label>
+          <input type="checkbox" id="event-private" name="isPrivate" />
+          Private Event
+        </label>
       </div>
       <button id="save-event-btn">Add Event</button>
       <button id="cancel-event-btn">Cancel</button>
@@ -70,50 +103,77 @@
   </div>
 
   <!-- Mint Timeslot Modal -->
-  <div id="mint-modal" class="modal modal-hidden">
+  <div id="mint-modal" class="modal hidden">
     <div class="modal-content">
       <h3>⛏️ Mint Timeslot NFT</h3>
-      <label>Start Time:
-        <input type="datetime-local" id="mint-start" />
+      <p class="modal-info">Minting puts this timeslot on-chain and uploads metadata to IPFS.</p>
+      <label>
+        Title:
+        <input type="text" id="mint-title" placeholder="e.g. IT Consultation" />
       </label>
-      <label>End Time:
-        <input type="datetime-local" id="mint-end" />
+      <label>
+        Date:
+        <input type="date" id="mint-date" />
       </label>
-      <label>Hourly Rate (POL):
-        <input type="number" id="mint-hourly-rate" step="0.01" placeholder="0" />
+      <label>
+        Start Time:
+        <input type="time" id="mint-start" />
       </label>
-      <button id="confirm-mint-btn">Mint</button>
+      <label>
+        End Time:
+        <input type="time" id="mint-end" />
+      </label>
+      <label>
+        Hourly Rate (POL):
+        <input type="number" id="mint-rate" step="0.001" min="0" placeholder="0.05" />
+      </label>
+      <label>
+        Description:
+        <input type="text" id="mint-description" placeholder="What will you offer?" />
+      </label>
+      <button id="confirm-mint-btn">Mint to Chain</button>
       <button id="cancel-mint-btn">Cancel</button>
     </div>
   </div>
 
-  <!-- Booking Confirm Modal -->
-  <div id="booking-modal" class="modal modal-hidden">
+  <!-- Booking Modal (buyer view) -->
+  <div id="booking-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>Book This Timeslot</h3>
-      <p id="booking-details"></p>
+      <h3>📅 Book This Timeslot</h3>
+      <div id="booking-details"></div>
       <div class="payment-options">
-        <label><input type="radio" name="payment" value="pol" checked /> Pay in POL</label>
-        <label><input type="radio" name="payment" value="ommm" /> Pay in Ommm</label>
+        <button id="pay-crypto-btn">💎 Pay with POL/ETH</button>
+        <button id="pay-paypal-btn">🅿️ Pay with PayPal</button>
+        <button id="pay-card-btn">💳 Pay with Card</button>
       </div>
-      <button id="confirm-booking-btn">Confirm &amp; Pay</button>
       <button id="cancel-booking-btn">Cancel</button>
     </div>
   </div>
 
   <!-- Meeting Room Modal -->
-  <div id="meeting-modal" class="modal meeting-modal modal-hidden">
-    <h3>Meeting Room</h3>
-    <video id="meeting-video" autoplay playsinline style="width:100%;"></video>
-    <p id="meeting-status">Waiting for participants...</p>
-    <button id="join-meeting-btn" class="hidden">Join Meeting</button>
-    <button id="close-meeting-btn">Close</button>
+  <div id="meeting-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>🎥 Meeting Room</h3>
+      <video id="meeting-video" autoplay playsinline style="width:100%;border-radius:8px;"></video>
+      <div id="meeting-controls"></div>
+      <button id="close-meeting-btn">Close</button>
+    </div>
   </div>
 
-  <!-- MAIN SCRIPT LOADER — ES module just like BigNuten -->
+  <!-- Confirm Appointment Modal (owner confirms booking) -->
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>✅ Confirm Appointment</h3>
+      <div id="confirm-details"></div>
+      <button id="confirm-appointment-btn">Confirm &amp; Release Funds</button>
+      <button id="cancel-appointment-btn">Cancel Booking (Refund)</button>
+    </div>
+  </div>
+
+  <!-- ES Module entry — loads all Web Components -->
   <script type="module" src="js/main.js"></script>
 
-  <!-- DecentCalendar Web Component — initialises calendar logic (no shadow DOM) -->
+  <!-- DecentCalendar Web Component — wires calendar logic and modal events (light DOM) -->
   <decent-calendar></decent-calendar>
 
 </body>

@@ -18,16 +18,13 @@ class WaitingModal extends HTMLElement {
           width: 100%;
           text-shadow: 0 0 8px #7300ff;
         }
-
         .modal-instructions a {
           color: #00ffff;
           text-decoration: underline;
         }
-
         .modal-instructions a:hover {
           color: #ffffff;
         }
-
         .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
@@ -37,7 +34,6 @@ class WaitingModal extends HTMLElement {
           align-items: center;
           justify-content: center;
         }
-
         .modal-content {
           position: relative;
           aspect-ratio: 16/9;
@@ -51,17 +47,14 @@ class WaitingModal extends HTMLElement {
           text-align: center;
           overflow: hidden;
         }
-
         .modal-content::before {
           content: '';
-          background: url('img/IPFS_Companion.gif') center center / cover no-repeat;
+          background: url('assets/IPFS_Companion.gif') center center / cover no-repeat;
           position: absolute;
-          top: 0; left: 0;
-          right: 0; bottom: 0;
+          top: 0; left: 0; right: 0; bottom: 0;
           opacity: 0.4;
           z-index: 0;
         }
-
         .modal-message {
           position: relative;
           z-index: 1;
@@ -74,7 +67,6 @@ class WaitingModal extends HTMLElement {
           margin-right: 8px;
           height: 24px;
         }
-
         .belly-anchor {
           position: absolute;
           top: 65%;
@@ -84,24 +76,18 @@ class WaitingModal extends HTMLElement {
           height: 100px;
           z-index: 2;
         }
-
         .icon-ring {
           position: relative;
           width: 100px;
           height: 100px;
-          margin-top: 0;
-          margin-left: auto;
-          margin-right: auto;
+          margin: 0 auto;
           z-index: 1;
         }
-
         .icon-ring img {
           position: absolute;
           width: 20px;
           height: 20px;
-          transform-origin: 50px 50px;
         }
-
         #prompt-button {
           background: #00e5ff;
           color: #000;
@@ -118,15 +104,15 @@ class WaitingModal extends HTMLElement {
       <div class="modal-overlay">
         <div class="modal-content">
           <div class="modal-message" id="modalMessage">
-            <img src="img/Web3Storage.png" alt="Web3Storage Logo" />
-            🛜 Send my credentials to my browser
+            <img src="assets/Web3Storage.png" onerror="this.style.display='none'" alt="Web3Storage Logo" />
+            🛜 Connecting to IPFS...
           </div>
-          <button id="prompt-button">Enter Email</button>
+          <button id="prompt-button">Configure Pinata Keys</button>
           <div class="belly-anchor">
             <div class="icon-ring" id="iconRing"></div>
           </div>
           <div class="modal-instructions" id="modalInstructions">
-            👉 <a href="https://web3.storage" target="_blank" rel="noopener noreferrer">Don't have a web3.storage account yet? Create one here</a>
+            👉 <a href="https://app.pinata.cloud" target="_blank" rel="noopener noreferrer">Get a free Pinata account for IPFS storage</a>
           </div>
         </div>
       </div>
@@ -138,29 +124,22 @@ class WaitingModal extends HTMLElement {
     const promptBtn = this.shadowRoot.getElementById('prompt-button');
     if (promptBtn) {
       promptBtn.addEventListener('click', () => {
-        if (window.promptForEmail) {
-          window.promptForEmail();
-        }
-        const msg = this.shadowRoot.getElementById('modalMessage');
-        if (msg) {
-          msg.innerHTML = '<img src="img/Web3Storage.png" alt="Web3Storage Logo" /> 🛜 Please check your email and click the confirmation button to complete the ipfs connection. 🪐📂';
-        }
-        const instructions = this.shadowRoot.getElementById('modalInstructions');
-        if (instructions) {
-          instructions.innerHTML = '🔎 <a href="https://ipfs.tech" target="_blank" rel="noopener noreferrer">Learn more about IPFS</a>';
-        }
+        if (window.connectToIPFS) window.connectToIPFS();
+        this.remove();
       });
     }
   }
 
   renderRing() {
-    const icons = ['img/IPFS_Logo.png', 'img/DecentSmartHome_Logo.png'];
+    const icons = ['assets/IPFS_Logo.png', 'assets/DecentSmartHome_Logo.png'];
     const ring = this.shadowRoot.getElementById('iconRing');
+    if (!ring) return;
     const totalIcons = 8;
     const radius = 40;
     for (let i = 0; i < totalIcons; i++) {
       const img = document.createElement('img');
       img.src = icons[i % icons.length];
+      img.onerror = () => { img.src = 'assets/Ommm_Token_Logo.png'; };
       const angle = (2 * Math.PI * i) / totalIcons;
       const x = 50 + radius * Math.cos(angle) - 9;
       const y = 50 + radius * Math.sin(angle) - 9;
@@ -170,11 +149,11 @@ class WaitingModal extends HTMLElement {
     }
 
     let angle = 0;
-    function animate() {
+    const animate = () => {
       ring.style.transform = `rotate(${angle}deg)`;
       angle += 0.5;
       requestAnimationFrame(animate);
-    }
+    };
     animate();
   }
 }

@@ -10,7 +10,6 @@ class AppHeader extends HTMLElement {
 
   render() {
     this.shadowRoot.innerHTML = `
-        <link rel="stylesheet" href="css/styles.css" />
         <link rel="stylesheet" href="css/header.css" />
         <header>
             <ipfs-status></ipfs-status>

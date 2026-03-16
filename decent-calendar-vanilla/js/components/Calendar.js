@@ -1,382 +1,312 @@
-import { fetchEventsForAddress, saveEvent, getAllMyEvents } from '../events.js';
-import { initMeetingRoom } from '../meetingRoom.js';
+/* Calendar.js — DecentCalendar Web Component (light DOM)
+ * Wires all calendar UI events and delegates to the global functions
+ * defined in calendar.js, events.js, contract.js, payments.js, meetingRoom.js.
+ * Does NOT use shadow DOM so FullCalendar renders directly into the page. */
 
 export class DecentCalendar extends HTMLElement {
   connectedCallback() {
-    this.calendar = null;
-    this.walletAddress = null;
-    this.myEventsVisible = true;
-    this.otherEventsVisible = true;
-    this.otherEvents = [];
-    this.meetingRoomId = null;
-    this.meetingPeer = null;
+    // Wait for full DOM before wiring
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this._init());
+    } else {
+      this._init();
+    }
+  }
 
-    this.initCalendar();
-    this.wireControls();
-    this.wireModals();
-
-    // Hook called by WalletConnect after successful connect
+  _init() {
+    // ---- Set global wallet callbacks ----
     window.onWalletConnected = (address) => {
       window._walletAddress = address;
-      this.walletAddress = address;
-      this.loadMyEvents(address);
-      this.renderCalendarToggle(address);
+      if (typeof loadAndRenderMyEvents === 'function') loadAndRenderMyEvents();
+      if (typeof checkPendingBookings === 'function') checkPendingBookings();
     };
 
-    // Hook called by IPFSStatus when IPFS icon is clicked
+    window.onWalletDisconnected = () => {
+      window._walletAddress = null;
+      window._walletProvider = null;
+      window._walletSigner = null;
+      if (typeof clearCalendarEvents === 'function') clearCalendarEvents();
+    };
+
+    // ---- Set IPFS upload hook ----
     window.onIPFSUploadClick = async () => {
-      if (window._walletAddress && window.w3upClient) {
-        await this.uploadEventsToIPFS();
-      } else {
-        alert('Please connect your wallet and IPFS before uploading events.');
+      if (!window._walletAddress) {
+        alert('Please connect your wallet before uploading.');
+        return;
+      }
+      const key = localStorage.getItem('pinata_api_key') || '';
+      const secret = localStorage.getItem('pinata_api_secret') || '';
+      if (!key || !secret) {
+        alert('Configure your Pinata API keys first (click the IPFS icon).');
+        return;
+      }
+      try {
+        const events = typeof loadMyEvents === 'function'
+          ? loadMyEvents(window._walletAddress)
+          : [];
+        if (events.length === 0) {
+          alert('No events to upload.');
+          return;
+        }
+        const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'pinata_api_key': key,
+            'pinata_secret_api_key': secret,
+          },
+          body: JSON.stringify({
+            pinataContent: { address: window._walletAddress, events },
+            pinataMetadata: { name: `decent-calendar-${window._walletAddress.slice(0, 8)}` },
+          }),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const result = await response.json();
+        const cid = result.IpfsHash;
+
+        const history = JSON.parse(localStorage.getItem('calendarIPFSHistory') || '[]');
+        history.unshift({ cid, timestamp: new Date().toISOString() });
+        localStorage.setItem('calendarIPFSHistory', JSON.stringify(history.slice(0, 50)));
+
+        alert(`Calendar uploaded to IPFS!\nCID: ${cid}\n\nhttps://gateway.pinata.cloud/ipfs/${cid}`);
+      } catch (err) {
+        console.error('IPFS upload failed:', err);
+        alert('Upload failed: ' + err.message);
       }
     };
-  }
 
-  initCalendar() {
-    const calEl = document.getElementById('calendar');
-    if (!calEl || typeof FullCalendar === 'undefined') {
-      console.warn('FullCalendar not ready yet, retrying...');
-      setTimeout(() => this.initCalendar(), 500);
-      return;
-    }
+    // ---- Init FullCalendar ----
+    if (typeof initCalendar === 'function') initCalendar();
+    if (typeof refreshCalendarToggle === 'function') refreshCalendarToggle();
 
-    this.calendar = new FullCalendar.Calendar(calEl, {
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay',
-      },
-      slotDuration: '00:15:00',
-      events: [],
-      eventClick: (info) => this.handleEventClick(info),
-      eventDataTransform: (event) => ({
-        ...event,
-        title: `${event.title} (${event.hourlyRate || 0} POL/hr)`,
-        backgroundColor: event.backgroundColor || undefined,
-        borderColor: event.borderColor || undefined,
-        classNames: event.classNames || ['public-event'],
-      }),
-    });
-    this.calendar.render();
-  }
-
-  async loadMyEvents(address) {
-    const events = await fetchEventsForAddress(address);
-    this.renderEvents(events, this.otherEvents);
-  }
-
-  renderEvents(myEvents, otherEvents) {
-    if (!this.calendar) return;
-    this.calendar.removeAllEvents();
-    if (this.myEventsVisible) {
-      myEvents.forEach(e => this.calendar.addEvent(e));
-    }
-    if (this.otherEventsVisible) {
-      otherEvents.forEach(e => this.calendar.addEvent(e));
-    }
-  }
-
-  renderCalendarToggle(address) {
-    const toggleEl = document.getElementById('calendar-toggle');
-    if (!toggleEl) return;
-    toggleEl.innerHTML = `
-      <label style="color:#00FF00;">
-        <input type="checkbox" id="my-events-toggle" ${this.myEventsVisible ? 'checked' : ''} />
-        Your Calendar:
-        <span class="calendar-shower-wallet-addr">${address.slice(0, 6)}</span>
-        <img src="img/DecentSmartHome_Logo.png" class="icon-small" alt="" />
-        <img src="img/Ommm_Token_Logo.png" class="icon-small" alt="" />
-        <span class="calendar-shower-wallet-addr">${address.slice(-4)}</span>
-      </label>
-      <br/>
-      <label style="color:#FF6347;" id="imported-toggle-label">
-        <input type="checkbox" id="other-events-toggle" ${this.otherEventsVisible ? 'checked' : ''} />
-        Imported Calendar
-      </label>
-    `;
-
-    document.getElementById('my-events-toggle').addEventListener('change', async (e) => {
-      this.myEventsVisible = e.target.checked;
-      const myEvents = await fetchEventsForAddress(this.walletAddress || '');
-      this.renderEvents(myEvents, this.otherEvents);
+    // ---- Wire Add Event Modal ----
+    document.getElementById('add-event-btn')?.addEventListener('click', () => {
+      if (!window._walletAddress) {
+        alert('Please connect your wallet first.');
+        return;
+      }
+      const modal = document.getElementById('add-event-modal');
+      if (modal) {
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-start').value = '';
+        document.getElementById('event-end').value = '';
+        document.getElementById('event-rate').value = '';
+        document.getElementById('event-public').checked = true;
+        document.getElementById('event-private').checked = false;
+        modal.classList.remove('hidden');
+      }
     });
 
-    document.getElementById('other-events-toggle').addEventListener('change', async (e) => {
-      this.otherEventsVisible = e.target.checked;
-      const myEvents = await fetchEventsForAddress(this.walletAddress || '');
-      this.renderEvents(myEvents, this.otherEvents);
-    });
-  }
-
-  wireControls() {
-    // Fetch public events button
-    const fetchBtn = document.getElementById('fetch-events-btn');
-    if (fetchBtn) {
-      fetchBtn.addEventListener('click', () => this.handleFetchPublicEvents());
-    }
-
-    // Add event button
-    const addBtn = document.getElementById('add-event-btn');
-    if (addBtn) {
-      addBtn.addEventListener('click', () => {
-        if (!this.walletAddress) {
-          alert('Please connect your wallet first.');
-          return;
-        }
-        document.getElementById('add-event-modal').classList.remove('modal-hidden');
-      });
-    }
-
-    // Mint timeslot button
-    const mintBtn = document.getElementById('mint-timeslot-btn');
-    if (mintBtn) {
-      mintBtn.addEventListener('click', () => {
-        if (!this.walletAddress) {
-          alert('Please connect your wallet first.');
-          return;
-        }
-        document.getElementById('mint-modal').classList.remove('modal-hidden');
-      });
-    }
-  }
-
-  wireModals() {
-    // Add event modal
-    document.getElementById('save-event-btn')?.addEventListener('click', () => this.handleAddEvent());
+    document.getElementById('save-event-btn')?.addEventListener('click', () => this._handleAddEvent());
     document.getElementById('cancel-event-btn')?.addEventListener('click', () => {
-      document.getElementById('add-event-modal').classList.add('modal-hidden');
+      document.getElementById('add-event-modal')?.classList.add('hidden');
     });
 
-    // Sync public/private checkboxes in add-event modal
-    document.getElementById('event-is-public')?.addEventListener('change', (e) => {
-      if (e.target.checked) document.getElementById('event-is-private').checked = false;
+    document.getElementById('event-public')?.addEventListener('change', (e) => {
+      const priv = document.getElementById('event-private');
+      if (priv) priv.checked = !e.target.checked;
     });
-    document.getElementById('event-is-private')?.addEventListener('change', (e) => {
-      if (e.target.checked) document.getElementById('event-is-public').checked = false;
+    document.getElementById('event-private')?.addEventListener('change', (e) => {
+      const pub = document.getElementById('event-public');
+      if (pub) pub.checked = !e.target.checked;
     });
 
-    // Mint modal
-    document.getElementById('confirm-mint-btn')?.addEventListener('click', () => this.handleMintTimeslot());
+    // ---- Wire Mint Modal ----
+    document.getElementById('mint-timeslot-btn')?.addEventListener('click', () => {
+      if (!window._walletAddress) {
+        alert('Please connect your wallet first.');
+        return;
+      }
+      document.getElementById('mint-modal')?.classList.remove('hidden');
+    });
+
+    document.getElementById('confirm-mint-btn')?.addEventListener('click', () => this._handleMintTimeslot());
     document.getElementById('cancel-mint-btn')?.addEventListener('click', () => {
-      document.getElementById('mint-modal').classList.add('modal-hidden');
+      document.getElementById('mint-modal')?.classList.add('hidden');
     });
 
-    // Booking modal
-    document.getElementById('confirm-booking-btn')?.addEventListener('click', () => this.handleConfirmBooking());
+    // ---- Wire Fetch Public Events ----
+    document.getElementById('fetch-events-btn')?.addEventListener('click', () => this._handleFetchPublicEvents());
+
+    // ---- Wire Booking Modal ----
     document.getElementById('cancel-booking-btn')?.addEventListener('click', () => {
-      document.getElementById('booking-modal').classList.add('modal-hidden');
-      this._pendingBooking = null;
+      document.getElementById('booking-modal')?.classList.add('hidden');
     });
 
-    // Meeting modal
+    // ---- Wire Meeting Modal ----
     document.getElementById('close-meeting-btn')?.addEventListener('click', () => {
-      document.getElementById('meeting-modal').classList.add('modal-hidden');
-      if (this.meetingPeer) {
-        this.meetingPeer.disconnect();
-        this.meetingPeer = null;
-      }
-    });
-
-    document.getElementById('join-meeting-btn')?.addEventListener('click', () => {
-      if (this.meetingRoomId) {
-        initMeetingRoom(this.meetingRoomId, false, document.getElementById('meeting-video'));
-      }
+      if (typeof closeMeetingRoom === 'function') closeMeetingRoom();
+      document.getElementById('meeting-modal')?.classList.add('hidden');
     });
   }
 
-  handleEventClick(info) {
-    const selectedEvent = info.event.extendedProps;
-    const classNames = info.event.classNames || selectedEvent.classNames || [];
-
-    // If event has a meeting room ID, open meeting modal
-    if (selectedEvent.meetingRoomID) {
-      this.meetingRoomId = selectedEvent.meetingRoomID;
-      const isHost = Boolean(this.walletAddress) &&
-        Boolean(selectedEvent.creator) &&
-        selectedEvent.creator.toLowerCase() === this.walletAddress.toLowerCase();
-      document.getElementById('meeting-modal').classList.remove('modal-hidden');
-
-      const joinBtn = document.getElementById('join-meeting-btn');
-      const statusEl = document.getElementById('meeting-status');
-      if (isHost) {
-        statusEl.textContent = 'Waiting for participants...';
-        joinBtn.classList.add('hidden');
-        initMeetingRoom(this.meetingRoomId, true, document.getElementById('meeting-video'));
-      } else {
-        statusEl.textContent = 'Click Join to enter the meeting.';
-        joinBtn.classList.remove('hidden');
-      }
-      return;
-    }
-
-    // Bookable public event
-    if (selectedEvent.hourlyRate && classNames.includes('public-event')) {
-      const start = new Date(info.event.start);
-      const end = new Date(info.event.end);
-      const duration = (end - start) / (1000 * 60 * 60);
-      const totalCost = (selectedEvent.hourlyRate * duration).toFixed(4);
-
-      this._pendingBooking = {
-        creator: selectedEvent.creator,
-        totalCost,
-        eventId: info.event.id,
-      };
-
-      document.getElementById('booking-details').textContent =
-        `Book "${info.event.title}" for ${totalCost} POL?`;
-      document.getElementById('booking-modal').classList.remove('modal-hidden');
-      return;
-    }
-
-    alert('This event is not available for booking.');
-  }
-
-  async handleAddEvent() {
-    const title = document.getElementById('event-title').value.trim();
-    const start = document.getElementById('event-start').value;
-    const end = document.getElementById('event-end').value;
-    const hourlyRate = parseFloat(document.getElementById('event-hourly-rate').value) || 0;
-    const isPublic = document.getElementById('event-is-public').checked;
+  // ---- Add Event handler (ported from app.js) ----
+  async _handleAddEvent() {
+    const title = document.getElementById('event-title')?.value.trim();
+    const start = document.getElementById('event-start')?.value;
+    const end = document.getElementById('event-end')?.value;
+    const hourlyRate = parseFloat(document.getElementById('event-rate')?.value) || 0;
+    const isPublic = document.getElementById('event-public')?.checked ?? true;
 
     if (!title || !start || !end) {
       alert('Please fill out all fields.');
       return;
     }
+    if (new Date(end) <= new Date(start)) {
+      alert('End time must be after start time.');
+      return;
+    }
 
-    const meetingRoomID = isPublic ? `meeting-${Date.now()}-${this.walletAddress}` : null;
-    const eventClassName = isPublic ? 'public-event' : 'private-event';
+    const classNames = isPublic ? ['public-event'] : ['private-event'];
+    const meetingRoomId = isPublic ? `meeting-${Date.now()}-${window._walletAddress}` : null;
 
     const newEvent = {
-      id: `evt-${Date.now()}`,
       title,
       start,
       end,
-      classNames: [eventClassName],
-      hourlyRate: isPublic ? hourlyRate : 0,
-      meetingRoomID,
-      creator: this.walletAddress,
+      hourlyRate,
+      isPublic,
+      classNames,
+      meetingRoomId,
+      creator: window._walletAddress,
+      status: 'available',
     };
 
-    await saveEvent(this.walletAddress, newEvent);
-    const myEvents = await fetchEventsForAddress(this.walletAddress);
-    this.renderEvents(myEvents, this.otherEvents);
-
-    document.getElementById('add-event-modal').classList.add('modal-hidden');
-    document.getElementById('event-title').value = '';
-    document.getElementById('event-start').value = '';
-    document.getElementById('event-end').value = '';
-    document.getElementById('event-hourly-rate').value = '';
-    document.getElementById('event-is-public').checked = true;
-    document.getElementById('event-is-private').checked = false;
-  }
-
-  async handleMintTimeslot() {
-    const start = document.getElementById('mint-start').value;
-    const end = document.getElementById('mint-end').value;
-    const hourlyRate = parseFloat(document.getElementById('mint-hourly-rate').value) || 0;
-
-    if (!start || !end) {
-      alert('Please fill out all fields.');
-      return;
-    }
-
-    if (!this.walletAddress) {
-      alert('Connect your wallet first.');
-      return;
-    }
-
     try {
-      const { mintTimeslot } = await import('../contract.js');
-      await mintTimeslot(start, end, hourlyRate, this.walletAddress);
-      alert('Timeslot NFT minted successfully!');
-      document.getElementById('mint-modal').classList.add('modal-hidden');
+      const saved = await saveEvent(window._walletAddress, newEvent);
+      if (typeof addEventToCalendar === 'function') addEventToCalendar(saved);
+      document.getElementById('add-event-modal')?.classList.add('hidden');
     } catch (err) {
-      console.error('Mint failed:', err);
-      alert('Mint failed: ' + err.message);
+      console.error('Error saving event:', err);
+      alert('Failed to save event: ' + err.message);
     }
   }
 
-  async handleFetchPublicEvents() {
-    const address = document.getElementById('lookup-address').value.trim();
+  // ---- Mint Timeslot handler (ported from app.js) ----
+  async _handleMintTimeslot() {
+    const title = document.getElementById('mint-title')?.value.trim();
+    const date = document.getElementById('mint-date')?.value;
+    const startTime = document.getElementById('mint-start')?.value;
+    const endTime = document.getElementById('mint-end')?.value;
+    const hourlyRate = parseFloat(document.getElementById('mint-rate')?.value) || 0;
+    const description = document.getElementById('mint-description')?.value.trim() || '';
+
+    if (!title || !date || !startTime || !endTime) {
+      alert('Please fill out all required fields.');
+      return;
+    }
+
+    const startISO = `${date}T${startTime}`;
+    const endISO = `${date}T${endTime}`;
+    if (new Date(endISO) <= new Date(startISO)) {
+      alert('End time must be after start time.');
+      return;
+    }
+
+    const startTs = Math.floor(new Date(startISO).getTime() / 1000);
+    const endTs = Math.floor(new Date(endISO).getTime() / 1000);
+    const durationMinutes = Math.round((endTs - startTs) / 60);
+    const hourlyRateWei = ethers.parseEther(hourlyRate.toString()).toString();
+
+    const timeslotData = {
+      version: '0.1',
+      type: 'timeslot',
+      tokenId: null,
+      owner: window._walletAddress,
+      title,
+      description,
+      date,
+      startTime,
+      endTime,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      durationMinutes,
+      hourlyRate,
+      currency: 'POL',
+      status: 'available',
+      meetingRoomId: `meeting-${Date.now()}-${window._walletAddress}`,
+      fiatOptions: { paypal: true, card: true, fiatRateUSD: 0 },
+      isPublic: true,
+      classNames: ['public-event'],
+      creator: window._walletAddress,
+      start: startISO,
+      end: endISO,
+      createdAt: new Date().toISOString(),
+      ipfsCID: null,
+    };
+
+    document.getElementById('mint-modal')?.classList.add('hidden');
+
+    // Upload to IPFS if Pinata is configured
+    let ipfsCID = null;
+    try {
+      if (typeof uploadToIPFS === 'function') {
+        ipfsCID = await uploadToIPFS(timeslotData);
+      }
+    } catch (err) {
+      console.warn('IPFS upload failed, continuing without CID:', err);
+    }
+
+    // Mint on-chain if contract is configured
+    const contractAddr = window.DECENT_CONFIG?.contractAddresses?.TimeslotNFT || '';
+    if (contractAddr && ipfsCID && typeof mintTimeslot === 'function') {
+      try {
+        const tokenId = await mintTimeslot(ipfsCID, startTs, endTs, hourlyRateWei);
+        timeslotData.tokenId = tokenId;
+        timeslotData.ipfsCID = ipfsCID;
+        alert(`Timeslot minted! Token ID: ${tokenId}`);
+      } catch (err) {
+        console.error('Minting failed:', err);
+        alert('On-chain minting failed: ' + (err.reason || err.message) + '\nEvent saved locally only.');
+      }
+    } else if (!contractAddr) {
+      console.warn('Contract not deployed — saving timeslot to localStorage only.');
+      if (ipfsCID) alert(`Metadata uploaded to IPFS (CID: ${ipfsCID})\nDeploy contracts to mint on-chain.`);
+    }
+
+    timeslotData.ipfsCID = ipfsCID;
+    try {
+      const saved = await saveEvent(window._walletAddress, timeslotData);
+      if (typeof addEventToCalendar === 'function') addEventToCalendar(saved);
+    } catch (err) {
+      console.error('Error saving minted timeslot:', err);
+    }
+  }
+
+  // ---- Fetch Public Events handler (ported from app.js) ----
+  async _handleFetchPublicEvents() {
+    const address = document.getElementById('lookup-address')?.value.trim();
     if (!address) {
       alert('Please enter a wallet address.');
       return;
     }
-
-    const color = this.generateColorForAddress(address);
-    const events = await fetchEventsForAddress(address);
-
-    this.otherEvents = events.map(event => ({
-      ...event,
-      classNames: event.classNames || ['imported-event'],
-      backgroundColor: color,
-      borderColor: color,
-      hourlyRate: event.hourlyRate || 0,
-    }));
-
-    // Update the imported calendar toggle label
-    const importedLabel = document.getElementById('imported-toggle-label');
-    if (importedLabel) {
-      importedLabel.innerHTML = `
-        <input type="checkbox" id="other-events-toggle" ${this.otherEventsVisible ? 'checked' : ''} />
-        Imported:
-        <span class="calendar-shower-wallet-addr">${address.slice(0, 6)}</span>
-        ...
-        <span class="calendar-shower-wallet-addr">${address.slice(-4)}</span>
-      `;
-      document.getElementById('other-events-toggle').addEventListener('change', async (e) => {
-        this.otherEventsVisible = e.target.checked;
-        const myEvents = await fetchEventsForAddress(this.walletAddress || '');
-        this.renderEvents(myEvents, this.otherEvents);
-      });
-    }
-
-    const myEvents = await fetchEventsForAddress(this.walletAddress || '');
-    this.renderEvents(myEvents, this.otherEvents);
-  }
-
-  async handleConfirmBooking() {
-    if (!this._pendingBooking) return;
-    const { creator, totalCost } = this._pendingBooking;
-    const paymentType = document.querySelector('input[name="payment"]:checked')?.value || 'pol';
-
     try {
-      const { payForBooking } = await import('../payments.js');
-      await payForBooking(creator, totalCost, paymentType, this.walletAddress);
-      alert('Booking successful!');
-      document.getElementById('booking-modal').classList.add('modal-hidden');
-      this._pendingBooking = null;
+      const color = typeof generateColorForAddress === 'function'
+        ? generateColorForAddress(address)
+        : `hsl(${address.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360}, 70%, 50%)`;
+
+      const events = typeof fetchPublicEventsForAddress === 'function'
+        ? await fetchPublicEventsForAddress(address)
+        : [];
+
+      // Set otherEvents and currentLookupAddress via exposed setters in calendar.js
+      const mapped = events.map((event) => ({
+        ...event,
+        classNames: event.classNames || ['imported-event'],
+        backgroundColor: color,
+        borderColor: color,
+        hourlyRate: event.hourlyRate || 0,
+      }));
+      if (typeof setOtherEvents === 'function') setOtherEvents(mapped);
+      if (typeof setCurrentLookupAddress === 'function') setCurrentLookupAddress(address);
+
+      if (typeof refreshCalendarToggle === 'function') refreshCalendarToggle();
+      if (typeof refreshCalendar === 'function') refreshCalendar();
+
+      if (events.length === 0) alert('No public events found for this address.');
     } catch (err) {
-      console.error('Booking payment failed:', err);
-      alert('Payment failed: ' + err.message);
+      console.error('Fetch public events error:', err);
+      alert('Failed to fetch events: ' + err.message);
     }
-  }
-
-  async uploadEventsToIPFS() {
-    try {
-      const events = await getAllMyEvents(this.walletAddress);
-      const blob = new Blob([JSON.stringify(events)], { type: 'application/json' });
-      const file = new File([blob], 'calendar-events.json');
-      const cid = await window.w3upClient.uploadFile(file);
-      console.log('Uploaded to IPFS:', cid.toString());
-
-      const history = JSON.parse(localStorage.getItem('calendarIPFSHistory') || '[]');
-      history.unshift({ cid: cid.toString(), timestamp: new Date().toISOString() });
-      localStorage.setItem('calendarIPFSHistory', JSON.stringify(history.slice(0, 50)));
-
-      alert(`Events uploaded to IPFS!\nCID: ${cid.toString()}`);
-    } catch (err) {
-      console.error('IPFS upload failed:', err);
-      alert('Upload failed: ' + err.message);
-    }
-  }
-
-  generateColorForAddress(address) {
-    const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 50%)`;
   }
 }
 

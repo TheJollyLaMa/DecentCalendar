@@ -1,78 +1,112 @@
-/**
- * contract.js — ethers.js contract interactions for DecentCalendar vanilla
- * Interacts with TimeslotNFT and TimeslotMarket contracts on Polygon.
- */
+/* contract.js — ethers.js v6 contract interactions */
 
+// Fill these after deploying contracts to Polygon
+const CONTRACT_ADDRESSES = {
+  TimeslotNFT: '',     // e.g. '0x...'
+  TimeslotMarket: '',  // e.g. '0x...'
+};
+
+// ABIs — fill with full ABI arrays after compiling contracts
 const TIMESLOT_NFT_ABI = [
-  'function mint(uint256 startTime, uint256 endTime, uint256 hourlyRate) public payable returns (uint256)',
-  'function ownerOf(uint256 tokenId) public view returns (address)',
-  'function tokenURI(uint256 tokenId) public view returns (string)',
-  'event TimeslotMinted(uint256 indexed tokenId, address indexed owner, uint256 startTime, uint256 endTime)',
+  'function mintTimeslot(string ipfsCID, uint256 startTime, uint256 endTime, uint256 hourlyRate) returns (uint256)',
+  'function setStatus(uint256 tokenId, string status)',
+  'function getTimeslot(uint256 tokenId) view returns (tuple(address creator, string ipfsCID, uint256 startTime, uint256 endTime, uint256 hourlyRate, string status))',
+  'function tokenURI(uint256 tokenId) view returns (string)',
+  'event TimeslotMinted(uint256 indexed tokenId, address indexed creator, string ipfsCID)',
+  'event StatusUpdated(uint256 indexed tokenId, string status)',
 ];
 
 const TIMESLOT_MARKET_ABI = [
-  'function listTimeslot(uint256 tokenId, uint256 price) public',
-  'function buyTimeslot(uint256 tokenId) public payable',
-  'event TimeslotListed(uint256 indexed tokenId, address indexed seller, uint256 price)',
-  'event TimeslotSold(uint256 indexed tokenId, address indexed buyer, uint256 price)',
+  'function bookTimeslot(uint256 tokenId) payable',
+  'function confirmAppointment(uint256 tokenId)',
+  'function cancelBooking(uint256 tokenId)',
+  'function bookings(uint256 tokenId) view returns (address buyer, uint256 amount, bool confirmed, bool cancelled)',
+  'event TimeslotBooked(uint256 indexed tokenId, address indexed buyer, uint256 amount)',
+  'event AppointmentConfirmed(uint256 indexed tokenId, address indexed creator, uint256 amount)',
+  'event BookingCancelled(uint256 indexed tokenId, address indexed buyer, uint256 amount)',
 ];
 
-/**
- * Get the ethers provider and signer using MetaMask.
- * @returns {Promise<{provider: ethers.BrowserProvider, signer: ethers.Signer}>}
- */
-async function getProviderAndSigner() {
-  if (!window.ethereum) throw new Error('MetaMask not detected.');
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  return { provider, signer };
+function getNFTContract() {
+  if (!window._walletSigner) throw new Error('Wallet not connected');
+  if (!CONTRACT_ADDRESSES.TimeslotNFT) throw new Error('TimeslotNFT address not configured');
+  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotNFT, TIMESLOT_NFT_ABI, window._walletSigner);
+}
+
+function getMarketContract() {
+  if (!window._walletSigner) throw new Error('Wallet not connected');
+  if (!CONTRACT_ADDRESSES.TimeslotMarket) throw new Error('TimeslotMarket address not configured');
+  return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotMarket, TIMESLOT_MARKET_ABI, window._walletSigner);
 }
 
 /**
- * Mint a Timeslot NFT on chain.
- * @param {string} start - ISO datetime string for start
- * @param {string} end - ISO datetime string for end
- * @param {number} hourlyRate - Hourly rate in POL
- * @param {string} walletAddress - Connected wallet address
- * @returns {Promise<object>} - Transaction receipt
+ * Mint a timeslot NFT on-chain.
+ * @param {string} ipfsCID - IPFS CID of the event metadata
+ * @param {number} startTimestamp - Unix timestamp (seconds)
+ * @param {number} endTimestamp - Unix timestamp (seconds)
+ * @param {string} hourlyRateWei - hourly rate in wei (as string)
+ * @returns {number} tokenId
  */
-export async function mintTimeslot(start, end, hourlyRate, walletAddress) {
-  const contractAddress = window.DECENT_CONFIG?.contractAddresses?.TimeslotNFT;
-  if (!contractAddress) {
-    throw new Error('TimeslotNFT contract address not configured. Please update decent.config.js after deployment.');
-  }
-
-  const { signer } = await getProviderAndSigner();
-  const contract = new ethers.Contract(contractAddress, TIMESLOT_NFT_ABI, signer);
-
-  const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
-  const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
-  const hourlyRateWei = ethers.parseEther(hourlyRate.toString());
-
-  const tx = await contract.mint(startTimestamp, endTimestamp, hourlyRateWei);
+async function mintTimeslot(ipfsCID, startTimestamp, endTimestamp, hourlyRateWei) {
+  const contract = getNFTContract();
+  const tx = await contract.mintTimeslot(ipfsCID, startTimestamp, endTimestamp, hourlyRateWei);
+  console.log('Mint tx sent:', tx.hash);
   const receipt = await tx.wait();
-  console.log('Timeslot minted:', receipt);
-  return receipt;
+
+  // Find the TimeslotMinted event to get the tokenId
+  const event = receipt.logs
+    .map((log) => {
+      try { return contract.interface.parseLog(log); } catch { return null; }
+    })
+    .find((e) => e && e.name === 'TimeslotMinted');
+
+  const tokenId = event ? Number(event.args.tokenId) : null;
+  console.log('Minted tokenId:', tokenId);
+  return tokenId;
 }
 
 /**
- * List a timeslot NFT on the marketplace.
- * @param {string|number} tokenId - NFT token ID
- * @param {number} price - Price in POL (ETH)
- * @returns {Promise<object>} - Transaction receipt
+ * Book a timeslot by sending POL to the market contract (held in escrow).
+ * @param {number} tokenId
+ * @param {bigint} valueInWei
  */
-export async function listTimeslot(tokenId, price) {
-  const contractAddress = window.DECENT_CONFIG?.contractAddresses?.TimeslotMarket;
-  if (!contractAddress) {
-    throw new Error('TimeslotMarket contract address not configured.');
-  }
+async function bookTimeslot(tokenId, valueInWei) {
+  const contract = getMarketContract();
+  const tx = await contract.bookTimeslot(tokenId, { value: valueInWei });
+  console.log('Book tx sent:', tx.hash);
+  await tx.wait();
+  console.log('Timeslot booked, funds in escrow');
+}
 
-  const { signer } = await getProviderAndSigner();
-  const contract = new ethers.Contract(contractAddress, TIMESLOT_MARKET_ABI, signer);
-  const priceWei = ethers.parseEther(price.toString());
+/**
+ * Owner confirms the appointment — releases escrowed funds.
+ * @param {number} tokenId
+ */
+async function confirmAppointment(tokenId) {
+  const contract = getMarketContract();
+  const tx = await contract.confirmAppointment(tokenId);
+  console.log('Confirm tx sent:', tx.hash);
+  await tx.wait();
+  console.log('Appointment confirmed, funds released');
+}
 
-  const tx = await contract.listTimeslot(tokenId, priceWei);
-  const receipt = await tx.wait();
-  console.log('Timeslot listed:', receipt);
-  return receipt;
+/**
+ * Cancel a booking — refunds the buyer.
+ * @param {number} tokenId
+ */
+async function cancelBooking(tokenId) {
+  const contract = getMarketContract();
+  const tx = await contract.cancelBooking(tokenId);
+  console.log('Cancel tx sent:', tx.hash);
+  await tx.wait();
+  console.log('Booking cancelled, buyer refunded');
+}
+
+/**
+ * Read a timeslot from the NFT contract.
+ * @param {number} tokenId
+ * @returns {object} timeslot data
+ */
+async function getTimeslot(tokenId) {
+  const contract = getNFTContract();
+  return contract.getTimeslot(tokenId);
 }

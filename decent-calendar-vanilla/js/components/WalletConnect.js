@@ -19,30 +19,54 @@ export class WalletConnect extends HTMLElement {
     this.walletTickerCircle = this.shadowRoot.getElementById('wallet-ticker-circle');
 
     if (window.ethereum) {
-      this.walletButton.addEventListener('click', () => this.connectWallet());
+      this.walletButton.addEventListener('click', () => {
+        if (this.walletConnected) {
+          this.disconnectWallet();
+        } else {
+          this.connectWallet();
+        }
+      });
+
+      // Listen for account changes in MetaMask
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          this.disconnectWallet();
+        } else {
+          this.walletAddress = accounts[0];
+          this.walletConnected = true;
+          window._walletAddress = accounts[0];
+          this.updateWalletUI();
+          if (window.onWalletConnected) window.onWalletConnected(accounts[0]);
+        }
+      });
+
+      window.ethereum.on('chainChanged', () => window.location.reload());
     } else {
       this.walletButton.addEventListener('click', () => {
         alert('MetaMask not detected. Please install MetaMask!');
       });
     }
 
+    // Restore if already connected
     if (window.ethereum && window.ethereum.selectedAddress) {
       this.walletAddress = window.ethereum.selectedAddress;
       this.walletConnected = true;
+      window._walletAddress = this.walletAddress;
       this.updateWalletUI();
+      this.animateWalletTicker(this.walletAddress);
     }
   }
 
   render() {
     this.shadowRoot.innerHTML = `
         <link rel="stylesheet" href="css/header.css" />
-        <div id="walletHeaderContainer" style="display: flex; align-items: center; justify-content: flex-end; height: 100px;">
+        <div id="walletHeaderContainer" style="display:flex;align-items:center;justify-content:flex-end;height:100px;">
           <div id="walletIconWrapper">
             <div class="ticker-wrapper wallet-ticker">
                 <div class="ticker-circle-metamask" id="wallet-ticker-circle"></div>
             </div>
-            <button id="wallet-connect" class="neon-button disconnected">
-                <img id="metamaskIcon" src="img/MetaMaskFox.png" alt="Connect Wallet" />
+            <button id="wallet-connect" class="disconnected">
+                <img id="metamaskIcon" src="assets/Metamask_Logo.png" alt="Connect Wallet" />
             </button>
             <div id="wallet-display"></div>
             <div id="walletHoverDisplay" class="wallet-hover-display"></div>
@@ -65,9 +89,17 @@ export class WalletConnect extends HTMLElement {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       this.walletAddress = accounts[0];
       this.walletConnected = true;
+
+      // Set globals for use by calendar.js, contract.js, payments.js
+      window._walletAddress = accounts[0];
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      window._walletProvider = provider;
+      window._walletSigner = await provider.getSigner();
+
       this.updateWalletUI();
       this.animateWalletTicker(this.walletAddress);
       await this.checkNetwork();
+
       if (window.onWalletConnected) window.onWalletConnected(this.walletAddress);
     } catch (err) {
       alert(`Wallet connection failed: ${err.message || 'Please try again.'}`);
@@ -75,6 +107,20 @@ export class WalletConnect extends HTMLElement {
       this.walletAddress = null;
       this.updateWalletUI();
     }
+  }
+
+  disconnectWallet() {
+    this.walletAddress = null;
+    this.walletConnected = false;
+    window._walletAddress = null;
+    window._walletProvider = null;
+    window._walletSigner = null;
+    this.updateWalletUI();
+    if (this.walletTickerCircle) {
+      this.walletTickerCircle.innerHTML = '';
+      this.walletTickerCircle.classList.remove('animated');
+    }
+    if (window.onWalletDisconnected) window.onWalletDisconnected();
   }
 
   async checkNetwork() {
@@ -100,7 +146,8 @@ export class WalletConnect extends HTMLElement {
     if (this.walletConnected && this.walletAddress) {
       this.walletButton.classList.remove('disconnected');
       this.walletButton.classList.add('connected');
-      this.walletDisplay.innerHTML = `<span class="wallet-display-label">${this.shortenAddress(this.walletAddress)}</span>`;
+      this.walletDisplay.innerHTML =
+        `<span class="wallet-display-label">${this.shortenAddress(this.walletAddress)}</span>`;
     } else {
       this.walletButton.classList.remove('connected');
       this.walletButton.classList.add('disconnected');
@@ -113,7 +160,6 @@ export class WalletConnect extends HTMLElement {
     if (!circle) return;
     circle.innerHTML = '';
 
-    // Show: first 6 chars, 4 logos, last 4 chars (no 0x)
     const display = [
       ' ', '⚡️', ' ', '⚸', ' ', '⚡️', ' ',
       ...address.slice(0, 6),
@@ -132,7 +178,7 @@ export class WalletConnect extends HTMLElement {
 
       if (display[i] === 'logo') {
         const img = document.createElement('img');
-        img.src = 'img/Ommm_Token_Logo.png';
+        img.src = 'assets/Ommm_Token_Logo.png';
         img.alt = 'token';
         img.className = 'ticker-letter-logo';
         img.style.left = `${x}px`;

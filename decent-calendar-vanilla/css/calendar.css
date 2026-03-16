@@ -1,229 +1,155 @@
-/* ===== CALENDAR CSS — Ported from React Calendar.css ===== */
+/* =========================================================
+   calendar.css — Calendar, modal, and event styles
+   for DecentCalendar vanilla
+   ========================================================= */
 
-/* Calendar main layout */
-#calendar-main {
-  padding: 20px;
-  max-width: 90%;
-  margin: auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#calendar-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  position: relative;
-}
-
-#calendar-toggle {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-
-#calendar-toggle label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-/* ===== "+" Add Event Button ===== */
-.add-event-button {
-  width: 40px;
-  height: 40px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #0ff;
-  background: black;
-  border: 2px solid #0ff;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  flex-shrink: 0;
-}
-
-.add-event-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px #0ff, 0 0 30px #00f;
-}
-
-/* ===== Mint Button ===== */
-.mint-button {
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #fff;
-  background: rgba(115, 0, 255, 0.3);
-  border: 2px solid #7300ff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #7300ff;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  flex-shrink: 0;
-}
-
-.mint-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px #7300ff, 0 0 30px #00e5ff;
-}
-
-/* ===== Address Input ===== */
-.address-input {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.address-input input {
-  padding: 10px;
-  font-size: 1rem;
-  border: 2px solid #0ff;
-  border-radius: 5px;
-  background: black;
-  color: white;
-  width: 300px;
-  text-align: center;
-}
-
-.address-input input::placeholder {
-  color: rgba(0, 255, 255, 0.4);
-}
-
-.address-input button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: 2px solid #0ff;
-  border-radius: 5px;
-  background: black;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.address-input button:hover {
-  background: #0ff;
-  color: black;
-}
-
-/* ===== Calendar Wrapper ===== */
+/* ---- Calendar Wrapper ---- */
 #calendar-wrapper {
-  margin-top: 10px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.calendar-wrapper .fc .fc-daygrid-day,
-#calendar-wrapper .fc .fc-daygrid-day {
-  background: rgba(0, 0, 0, 0.3);
-  transition: background 0.3s ease;
+#calendar {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
-.calendar-wrapper .fc .fc-daygrid-day:hover,
-#calendar-wrapper .fc .fc-daygrid-day:hover {
-  background: rgba(0, 255, 255, 0.2);
-}
-
-.calendar-wrapper .fc .fc-timegrid-slot,
-#calendar-wrapper .fc .fc-timegrid-slot {
-  background: rgba(0, 0, 0, 0.3);
-  transition: background 0.3s ease;
-}
-
-.calendar-wrapper .fc .fc-timegrid-slot:hover,
-#calendar-wrapper .fc .fc-timegrid-slot:hover {
-  background: rgba(0, 255, 255, 0.2);
-}
-
-/* FullCalendar toolbar */
+/* FullCalendar overrides */
 .fc .fc-toolbar-title {
   color: #fff;
   text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
 }
 
 .fc .fc-button {
-  background: rgba(0, 0, 0, 0.7) !important;
+  background: black !important;
   border: 1px solid #0ff !important;
   color: #0ff !important;
-  text-shadow: none !important;
+  font-family: inherit !important;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .fc .fc-button:hover,
-.fc .fc-button.fc-button-active {
-  background: rgba(0, 255, 255, 0.15) !important;
-  box-shadow: 0 0 8px #0ff !important;
+.fc .fc-button-active {
+  background: #0ff !important;
+  color: black !important;
 }
 
-/* FullCalendar events */
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-slot {
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
+}
+
+.fc .fc-daygrid-day:hover,
+.fc .fc-timegrid-slot:hover {
+  background: rgba(0, 255, 255, 0.1);
+}
+
+.fc .fc-daygrid-day-frame,
+.fc .fc-timegrid-slot-frame {
+  border: 1px solid rgba(0, 255, 255, 0.15);
+}
+
 .fc-event {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: bold;
   text-shadow: 0 0 5px #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
-/* ===== Event Classes ===== */
+.fc-event:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 1);
+}
+
+/* ---- Event Type Classes ---- */
 .public-event {
-  background-color: rgba(0, 255, 0, 0.232) !important;
-  border: 1px solid rgba(0, 115, 255, 0.461) !important;
+  background-color: rgba(0, 255, 0, 0.23) !important;
+  border: 1px solid rgba(0, 115, 255, 0.46) !important;
   color: white !important;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .private-event {
-  background-color: rgba(255, 230, 0, 0.356) !important;
+  background-color: rgba(255, 230, 0, 0.36) !important;
   border: 1px solid rgba(255, 0, 0, 0.8) !important;
   color: white !important;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.imported-event {
-  color: white !important;
-  font-size: 1rem;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .public-event:hover,
-.private-event:hover,
-.imported-event:hover {
+.private-event:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(0, 38, 255, 0.362);
+  box-shadow: 0 0 10px rgba(0, 38, 255, 0.36);
 }
 
-/* ===== Modal Styles ===== */
+.imported-event {
+  color: white;
+  font-size: 0.9rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+/* ---- Modal ---- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: black;
+  border: 2px solid #0ff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 30px #0ff;
+  min-width: 320px;
+  max-width: 480px;
+  width: 90%;
+  text-align: left;
+}
+
 .modal-content h3 {
   color: white;
-  margin-bottom: 20px;
   margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  text-shadow: 0 0 8px #0ff;
 }
 
 .modal-content label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   color: #0ff;
+  font-size: 0.95rem;
 }
 
 .modal-content input[type="text"],
+.modal-content input[type="number"],
 .modal-content input[type="datetime-local"],
-.modal-content input[type="number"] {
+.modal-content input[type="date"],
+.modal-content input[type="time"] {
+  display: block;
   width: 100%;
+  box-sizing: border-box;
   padding: 6px 8px;
   margin-top: 4px;
-  margin-bottom: 10px;
   font-size: 1rem;
   border: 1px solid #0ff;
   border-radius: 5px;
-  background: black;
+  background: #111;
   color: white;
-  box-sizing: border-box;
+  font-family: inherit;
 }
 
 .checkbox-group {
@@ -232,7 +158,7 @@
 
 .checkbox-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   color: #0ff;
 }
 
@@ -240,12 +166,13 @@
   padding: 10px 20px;
   margin: 5px;
   font-size: 1rem;
+  font-family: inherit;
   border: 2px solid #0ff;
   border-radius: 5px;
   background: black;
   color: #0ff;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .modal-content button:hover {
@@ -253,88 +180,31 @@
   color: black;
 }
 
-/* ===== Booking / Payment Options ===== */
-.payment-options {
-  margin: 12px 0;
-  display: flex;
-  gap: 16px;
-}
-
-.payment-options label {
-  color: #0ff;
-  cursor: pointer;
-}
-
-/* ===== Meeting Room Modal ===== */
-.meeting-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 20, 0.97);
-  border: 2px solid #0ff;
-  padding: 20px;
-  border-radius: 10px;
-  z-index: 1000;
-  box-shadow: 0 0 20px #0ff;
-  min-width: 340px;
-  text-align: center;
-}
-
-.meeting-modal h3 {
-  color: #0ff;
-  text-align: center;
-  margin-top: 0;
-}
-
-.meeting-modal video {
-  width: 100%;
-  border-radius: 6px;
+/* booking details */
+#booking-details,
+#confirm-details {
+  font-size: 0.95rem;
+  color: #ccc;
   margin-bottom: 10px;
+  line-height: 1.6;
 }
 
-.meeting-modal button {
-  padding: 8px 16px;
-  margin: 4px;
-  border: 2px solid #0ff;
-  border-radius: 5px;
-  background: black;
+#booking-details strong,
+#confirm-details strong {
   color: #0ff;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
 }
 
-.meeting-modal button:hover {
-  background: #0ff;
-  color: black;
+/* ---- Meeting Modal ---- */
+#meeting-modal .modal-content {
+  max-width: 640px;
 }
 
-/* ===== Calendar Toggle Wallet Address Display ===== */
-.calendar-shower-wallet-addr {
-  display: inline;
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #00fff29b;
+#meeting-modal video {
+  border: 1px solid #0ff;
+  box-shadow: 0 0 10px #0ff;
 }
 
-/* ===== Calendar grid lines ===== */
-.fc .fc-daygrid-day-frame,
-.fc .fc-timegrid-slot-frame {
-  border: 1px solid rgba(0, 255, 255, 0.2);
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 600px) {
-  #calendar-main {
-    max-width: 100%;
-    padding: 10px;
-  }
-
-  .address-input {
-    flex-direction: column;
-  }
-
-  .address-input input {
-    width: 100%;
-  }
+#meeting-controls {
+  margin: 12px 0;
+  text-align: center;
 }
