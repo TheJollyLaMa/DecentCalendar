@@ -24,7 +24,7 @@ body::before {
   z-index: -1;
 }
 
-/* App Container — margin-top accounts for fixed <app-header> height (~70px) */
+/* App Container — margin-top accounts for fixed <app-header> height (~136px) */
 #main-content {
   text-align: center;
   min-height: 80vh;
@@ -32,7 +32,7 @@ body::before {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  margin-top: 120px;
+  margin-top: 140px;
 }
 
 /* ---- Header ---- */

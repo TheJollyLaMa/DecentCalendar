@@ -180,8 +180,8 @@ export class IPFSStatus extends HTMLElement {
       const img = document.createElement('img');
       img.classList.add('ticker-letter');
       img.src = 'assets/IPFS_Logo.png';
-      img.style.width = '12px';
-      img.style.height = '12px';
+      img.style.width = '10px';
+      img.style.height = '10px';
       circle.appendChild(img);
     }
 
@@ -193,15 +193,16 @@ export class IPFSStatus extends HTMLElement {
     });
 
     const letters = circle.querySelectorAll('.ticker-letter');
-    const centerX = circle.offsetWidth / 2 || 50;
-    const centerY = circle.offsetHeight / 2 || 50;
-    const radius = 45;
+    // Circle is 90×90px → center at (45, 45); radius 38 keeps all items inside
+    const centerX = 45;
+    const centerY = 45;
+    const radius = 38;
     const angleStep = (2 * Math.PI) / letters.length;
     letters.forEach((letter, i) => {
-      const angle = i * angleStep;
+      const angle = i * angleStep - Math.PI / 2; // start from top
       letter.style.position = 'absolute';
-      letter.style.left = `${centerX + radius * Math.cos(angle)}px`;
-      letter.style.top = `${centerY + radius * Math.sin(angle)}px`;
+      letter.style.left = `${centerX + radius * Math.cos(angle) - 4}px`;
+      letter.style.top  = `${centerY + radius * Math.sin(angle) - 4}px`;
     });
 
     let angle = 0;
@@ -290,7 +291,8 @@ export class IPFSStatus extends HTMLElement {
           position: relative;
         }
         #ipfs-status.ipfs-disconnected #ipfsIcon {
-          filter: grayscale(80%) drop-shadow(0 0 4px #555);
+          filter: grayscale(60%) drop-shadow(0 0 4px #0ff);
+          opacity: 0.7;
         }
         #ipfs-status.ipfs-connected #ipfsIcon {
           filter: drop-shadow(0 0 8px #0f0);
@@ -306,16 +308,20 @@ export class IPFSStatus extends HTMLElement {
         }
         #ipfs-ticker-circle {
           position: absolute;
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
+          /* Center the 90×90 circle inside the 100×100 wrapper */
+          top: 5px;
+          left: 5px;
           width: 90px;
           height: 90px;
+          /* rotate() via JS will spin around the circle's own center (45,45) */
+          transform-origin: 45px 45px;
         }
         .ticker-letter {
           position: absolute;
           font-size: 8px;
           color: #0ff;
           font-family: monospace;
+          line-height: 1;
         }
         #ipfsHoverPopup {
           display: none;
@@ -351,6 +357,37 @@ export class IPFSStatus extends HTMLElement {
         <div id="ipfsHoverPopup">Not connected to IPFS</div>
       </div>
     `;
+
+    // Show a placeholder spinning ring even before IPFS connection
+    this._startIdleRing();
+  }
+
+  // Idle ring: show "·IPFS·" dots orbiting before connection is established
+  _startIdleRing() {
+    const circle = this.shadowRoot.getElementById('ipfs-ticker-circle');
+    if (!circle) return;
+
+    const chars = ['·', 'I', 'P', 'F', 'S', '·', 'c', 'l', 'i', 'c', 'k', '·'];
+    chars.forEach((char, i) => {
+      const span = document.createElement('span');
+      span.classList.add('ticker-letter');
+      span.textContent = char;
+      span.style.color = 'rgba(0, 255, 255, 0.53)';
+      const angle = (2 * Math.PI * i) / chars.length - Math.PI / 2;
+      span.style.left = `${45 + 38 * Math.cos(angle) - 4}px`;
+      span.style.top  = `${45 + 38 * Math.sin(angle) - 4}px`;
+      circle.appendChild(span);
+    });
+
+    this._idleRotation = 0;
+    const spin = () => {
+      // Stop spinning once ticker has been replaced by real DID
+      if (this.ipfsConnected) return;
+      this._idleRotation += 0.15;
+      circle.style.transform = `rotate(${this._idleRotation}deg)`;
+      requestAnimationFrame(spin);
+    };
+    spin();
   }
 }
 

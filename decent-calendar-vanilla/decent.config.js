@@ -1,21 +1,21 @@
 /* decent.config.js — Application configuration for DecentCalendar
-   Fill in contract addresses after deploying to Polygon. */
+   Fill in contract addresses after deploying to Optimism. */
 
 const DECENT_CONFIG = {
-  // OMMM token address on Polygon (fill after deployment)
+  // OMMM token address on Optimism (fill after deployment)
   tokenAddress: '',
 
-  // Contract addresses — fill after deploying contracts to Polygon
+  // Contract addresses — fill after deploying contracts to Optimism
   contractAddresses: {
     TimeslotNFT: '',    // e.g. '0xAbCd...'
     TimeslotMarket: '', // e.g. '0xAbCd...'
   },
 
-  // Supported chain IDs: Polygon mainnet, Mumbai testnet, Amoy testnet
-  supportedChainIds: [137, 80001, 80002],
-  defaultChainId: 137,
-  defaultChainHex: '0x89', // Polygon mainnet
+  // Supported chain IDs: Optimism mainnet, Optimism Goerli, Optimism Sepolia
+  supportedChainIds: [10, 420, 11155420],
+  defaultChainId: 10,
+  defaultChainHex: '0xa', // Optimism mainnet
 
-  // IPFS
-  ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
+  // IPFS gateway for fetching CIDs
+  ipfsGateway: 'https://w3s.link/ipfs/',
 };
