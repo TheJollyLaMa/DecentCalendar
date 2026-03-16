@@ -198,7 +198,7 @@ class IPFSWaitingModal extends HTMLElement {
       this.hide();
       // Notify IPFSStatus component that keys are now set
       const statusEl = document.querySelector('ipfs-status');
-      if (statusEl && statusEl._setConnected) statusEl._setConnected(true);
+      if (statusEl && statusEl.setConnected) statusEl.setConnected(true);
     });
 
     this._shadow.querySelector('#skip-btn').addEventListener('click', () => {

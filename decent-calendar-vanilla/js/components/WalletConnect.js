@@ -138,7 +138,7 @@ class WalletConnect extends HTMLElement {
       const chainId = Number(network.chainId);
       const supported = DECENT_CONFIG
         ? DECENT_CONFIG.supportedChainIds
-        : [137, 80001, 80002];
+        : [137, 80001, 80002]; // Polygon mainnet, Mumbai, Amoy — mirrors DECENT_CONFIG defaults
       if (!supported.includes(chainId)) {
         const switchNow = confirm('This app runs on Polygon. Switch network now?');
         if (switchNow) {

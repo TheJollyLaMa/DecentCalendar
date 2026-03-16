@@ -262,9 +262,7 @@ class DecentCalendar extends HTMLElement {
       } catch (err) {
         console.error('Minting failed:', err);
         alert(
-          'On-chain minting failed: ' +
-            (err.reason || err.message) +
-            '\nEvent saved locally only.'
+          `On-chain minting failed: ${err.reason || err.message}\nEvent saved locally only.`
         );
       }
     } else if (!CONTRACT_ADDRESSES.TimeslotNFT) {

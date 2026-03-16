@@ -32,6 +32,8 @@ function initMeetingRoom(roomId, isHost) {
 
   // Host registers with the room ID so participants can call them.
   // Participant uses an auto-generated ID to avoid 'unavailable-id' errors.
+  // The participant calls the host using the host's roomId — the host does not
+  // need to know the participant's auto-generated ID; PeerJS routes via the server.
   peerInstance = isHost ? new Peer(roomId, peerOptions) : new Peer(peerOptions);
 
   peerInstance.on('open', (id) => {

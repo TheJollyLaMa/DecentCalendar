@@ -119,9 +119,15 @@ class IPFSStatus extends HTMLElement {
 
   // ---- Connection State ----
 
-  _setConnected(connected) {
+  /** Public method to update connection state (called by <waiting-modal>). */
+  setConnected(connected) {
     this._connected = connected;
     this._render();
+  }
+
+  /** @private */
+  _setConnected(connected) {
+    this.setConnected(connected);
   }
 
   _checkLocalKeys() {
