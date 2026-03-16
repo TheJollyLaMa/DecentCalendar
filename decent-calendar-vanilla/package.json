@@ -1,0 +1,10 @@
+{
+  "name": "decent-calendar-vanilla",
+  "version": "0.1.0",
+  "description": "DecentCalendar — Vanilla Edition. No build step, runs directly in the browser.",
+  "private": true,
+  "scripts": {
+    "start": "npx http-server . -p 8080 -o --cors",
+    "serve": "npx http-server . -p 8080 --cors"
+  }
+}

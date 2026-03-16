@@ -48,35 +48,49 @@ class DecentCalendar extends HTMLElement {
     };
 
     window.onIPFSUploadClick = async () => {
-      const apiKey = localStorage.getItem('pinata_api_key');
-      const apiSecret = localStorage.getItem('pinata_api_secret');
-
-      if (!apiKey || !apiSecret) {
-        // Show the waiting modal to configure Pinata keys
-        const modal = document.getElementById('ipfs-waiting-modal');
-        if (modal && modal.show) modal.show();
-        return;
-      }
-
-      // Upload current user's public events to IPFS
       if (!window._walletAddress) {
-        alert('Please connect your wallet first.');
+        alert('Connect your wallet first.');
         return;
       }
-
+      if (!window.w3upClient) {
+        alert('Connect to IPFS first (click the IPFS icon).');
+        return;
+      }
       const events = loadMyEvents(window._walletAddress);
-      const publicEvents = events.filter((e) => e.isPublic && !e.ipfsCID);
-      if (publicEvents.length === 0) {
-        alert('No new public events to upload to IPFS.');
-        return;
+      const data = {
+        address: window._walletAddress,
+        events,
+        exportedAt: new Date().toISOString(),
+      };
+      const { uploadDataToIPFS } = await import('../helpers/ipfs/uploadToIPFS.js');
+      const cid = await uploadDataToIPFS(data, window.w3upClient);
+      if (cid) {
+        alert(`✅ Calendar saved to IPFS!\nCID: ${cid}`);
+        console.log('Calendar CID:', cid);
+      } else {
+        alert('IPFS upload failed. Check the console for details.');
       }
+    };
 
-      let uploaded = 0;
-      for (const event of publicEvents) {
-        const cid = await uploadToIPFS(event);
-        if (cid) uploaded++;
+    window.onIPFSImportCID = async (cid) => {
+      try {
+        const url = `https://w3s.link/ipfs/${cid}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        const data = await res.json();
+        if (data.events && Array.isArray(data.events)) {
+          setOtherEvents(data.events.map(e => ({ ...e, classNames: ['imported-event'] })));
+          setCurrentLookupAddress(data.address || cid);
+          refreshCalendarToggle();
+          refreshCalendar();
+          alert(`✅ Imported ${data.events.length} events from CID`);
+        } else {
+          alert('No events found in that CID.');
+        }
+      } catch (err) {
+        console.error('CID import error:', err);
+        alert('Failed to import from CID: ' + err.message);
       }
-      alert(`Uploaded ${uploaded} event(s) to IPFS.`);
     };
   }
 

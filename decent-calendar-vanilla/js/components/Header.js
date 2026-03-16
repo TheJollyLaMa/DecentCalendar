@@ -24,10 +24,11 @@ class AppHeader extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 20px;
-          max-width: 1200px;
+          padding: 4px 20px;
+          max-width: 1400px;
           margin: 0 auto;
           gap: 16px;
+          min-height: 128px;
         }
         .header-left,
         .header-right {
