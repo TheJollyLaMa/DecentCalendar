@@ -24,22 +24,26 @@ function initMeetingRoom(roomId, isHost) {
     peerInstance = null;
   }
 
-  peerInstance = new Peer(roomId, {
+  const peerOptions = {
     host: '0.peerjs.com',
     port: 443,
     secure: true,
-  });
+  };
+
+  // Host registers with the room ID so participants can call them.
+  // Participant uses an auto-generated ID to avoid 'unavailable-id' errors.
+  peerInstance = isHost ? new Peer(roomId, peerOptions) : new Peer(peerOptions);
 
   peerInstance.on('open', (id) => {
     console.log(`PeerJS connected as: ${id}`);
+    // Participant auto-connects to host once their peer is open
+    if (!isHost) {
+      startCall(roomId, video);
+    }
   });
 
   peerInstance.on('error', (err) => {
     console.error('PeerJS error:', err);
-    if (err.type === 'unavailable-id') {
-      // Room ID already taken — connect as participant instead
-      startCall(roomId, video);
-    }
   });
 
   if (isHost) {
@@ -64,11 +68,12 @@ function initMeetingRoom(roomId, isHost) {
         });
     });
   } else {
-    // Participant: show a Join button
+    // Participant: show a Join button (auto-connect happens on peer 'open')
     controls.innerHTML = '';
     const joinBtn = document.createElement('button');
     joinBtn.textContent = 'Join Meeting';
-    joinBtn.style.cssText = 'padding:10px 20px;font-size:1rem;border:2px solid #0ff;border-radius:5px;background:black;color:#0ff;cursor:pointer;';
+    joinBtn.style.cssText =
+      'padding:10px 20px;font-size:1rem;border:2px solid #0ff;border-radius:5px;background:black;color:#0ff;cursor:pointer;';
     joinBtn.addEventListener('click', () => startCall(roomId, video));
     controls.appendChild(joinBtn);
 

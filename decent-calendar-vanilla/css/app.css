@@ -24,7 +24,7 @@ body::before {
   z-index: -1;
 }
 
-/* App Container */
+/* App Container — margin-top accounts for fixed <app-header> height (~70px) */
 #main-content {
   text-align: center;
   min-height: 80vh;
@@ -32,6 +32,7 @@ body::before {
   flex-direction: column;
   align-items: center;
   padding: 20px;
+  margin-top: 120px;
 }
 
 /* ---- Header ---- */
@@ -270,6 +271,22 @@ body::before {
   to {
     filter: drop-shadow(0 0 15px rgba(0, 255, 255, 1));
   }
+}
+
+/* ---- Shimmer Animation (for icon rings and loading states) ---- */
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.7));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(0, 255, 255, 1));
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s ease-in-out infinite;
 }
 
 /* ---- Calendar Toggle labels ---- */

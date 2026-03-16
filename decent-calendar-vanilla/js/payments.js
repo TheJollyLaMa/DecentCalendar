@@ -17,7 +17,7 @@ function getPendingBookingEvent() {
  * @param {number} totalCostPOL - total cost in POL (as a float)
  */
 async function payWithCrypto(tokenId, totalCostPOL) {
-  if (!walletState.signer) {
+  if (!window._walletSigner) {
     alert('Please connect your wallet first.');
     return;
   }
@@ -31,7 +31,7 @@ async function payWithCrypto(tokenId, totalCostPOL) {
     }
     try {
       const valueWei = ethers.parseEther(totalCostPOL.toString());
-      const tx = await walletState.signer.sendTransaction({
+      const tx = await window._walletSigner.sendTransaction({
         to: event.creator,
         value: valueWei,
       });
@@ -61,8 +61,15 @@ async function payWithCrypto(tokenId, totalCostPOL) {
  * @param {object} eventData - the event being booked
  */
 async function payWithPayPal(eventData) {
+  // Sanitize PayPal client ID — only allow alphanumeric, hyphens, underscores
+  const rawClientId = localStorage.getItem('paypal_client_id') || '';
+  const paypalClientId = /^[A-Za-z0-9_-]+$/.test(rawClientId) ? rawClientId : '';
+  if (!paypalClientId) {
+    alert('No valid PayPal client ID found.\nSet a valid paypal_client_id in localStorage to enable PayPal payments.');
+    return;
+  }
+
   // Load PayPal JS SDK on demand
-  const paypalClientId = localStorage.getItem('paypal_client_id') || 'YOUR_PAYPAL_CLIENT_ID';
   if (!window.paypal) {
     await loadScript(`https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`);
   }
