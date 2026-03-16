@@ -26,9 +26,9 @@ Key principles:
 | Public/private event toggle | ✅ Working |
 | localStorage persistence | ✅ Working |
 | Fetch another wallet's public events | ✅ Working |
-| IPFS upload via Pinata | ✅ Working (requires API keys) |
+| IPFS upload via w3up/web3.storage | ✅ Email auth flow (no API keys needed) |
+| CID import (load another address's calendar) | ✅ Working |
 | PeerJS video meeting room | ✅ Working |
-| Meeting room ID fix (React bug) | ✅ Fixed |
 | Mint timeslot NFT on-chain | 🔧 Stub (requires contract deployment) |
 | Escrow booking via TimeslotMarket | 🔧 Stub (requires contract deployment) |
 | Confirm/cancel appointment | 🔧 Stub (requires contract deployment) |
@@ -43,24 +43,38 @@ Key principles:
 ```
 Browser
   │
-  ├── index.html          (app shell)
+  ├── index.html                (app shell — Web Component structure)
+  │
   ├── js/
-  │   ├── app.js          → entry point, event wiring, modal handlers
-  │   ├── wallet.js       → MetaMask state, connectWallet(), disconnectWallet()
-  │   ├── calendar.js     → FullCalendar init, event click handlers, toggle UI
-  │   ├── events.js       → saveEvent(), loadMyEvents(), fetchPublicEventsForAddress()
-  │   ├── ipfs.js         → uploadToIPFS(), fetchFromIPFS() via Pinata REST API
-  │   ├── contract.js     → mintTimeslot(), bookTimeslot(), confirmAppointment()
-  │   ├── payments.js     → payWithCrypto(), payWithPayPal(), payWithCard()
-  │   └── meetingRoom.js  → initMeetingRoom(), startCall(), closeMeetingRoom()
+  │   ├── main.js               → ES module entry: imports all Web Components
+  │   │
+  │   ├── components/
+  │   │   ├── Header.js         → <app-header> (shadow DOM, composes ipfs-status/app-title/wallet-connect)
+  │   │   ├── AppTitle.js       → <app-title> (shadow DOM, title + subtitle)
+  │   │   ├── WalletConnect.js  → <wallet-connect> (shadow DOM, MetaMask + Polygon network check)
+  │   │   ├── IPFSStatus.js     → <ipfs-status> (shadow DOM, w3up connection, CID import UI)
+  │   │   ├── IPFSWaitingModal.js → <waiting-modal> (shadow DOM, email-auth flow modal)
+  │   │   └── Calendar.js       → <decent-calendar> (light DOM, orchestrator, FullCalendar init)
+  │   │
+  │   ├── helpers/
+  │   │   └── ipfs/
+  │   │       ├── w3upClient.js    → connectW3upClient() — w3up email-auth login
+  │   │       └── uploadToIPFS.js  → uploadDataToIPFS() — calendar JSON → IPFS CID
+  │   │
+  │   ├── calendar.js           → FullCalendar init, event click handlers, toggle UI (global)
+  │   ├── events.js             → saveEvent(), loadMyEvents(), fetchPublicEventsForAddress() (global)
+  │   ├── contract.js           → mintTimeslot(), bookTimeslot(), confirmAppointment() (global)
+  │   ├── payments.js           → payWithCrypto(), payWithPayPal(), payWithCard() (global)
+  │   └── meetingRoom.js        → initMeetingRoom(), startCall(), closeMeetingRoom() (global)
   │
   ├── css/
-  │   ├── app.css         → global styles (cyberpunk neon, SecretPyramid bg)
-  │   └── calendar.css    → calendar, modal, event type styles
+  │   ├── app.css               → global styles (cyberpunk neon, SecretPyramid bg)
+  │   ├── header.css            → BigNuten-compatible header + Web Component shadow DOM styles
+  │   └── calendar.css          → calendar, modal, event type styles
   │
   └── contracts/
-      ├── TimeslotNFT.sol     → ERC-721 timeslot minting
-      └── TimeslotMarket.sol  → escrow booking / confirm / cancel
+      ├── TimeslotNFT.sol       → ERC-721 timeslot minting
+      └── TimeslotMarket.sol    → escrow booking / confirm / cancel
 ```
 
 ### Data flow
@@ -69,14 +83,25 @@ Browser
 User adds event
     │
     ├─→ saveEvent()
-    │       ├─→ localStorage (always)
-    │       └─→ uploadToIPFS() if public + Pinata keys set
+    │       └─→ localStorage (always)
     │
     └─→ addEventToCalendar() → FullCalendar re-renders
 
+User clicks IPFS icon (saves calendar to IPFS)
+    │
+    ├─→ window.onIPFSUploadClick()
+    │       ├─→ uploadDataToIPFS(data, w3upClient) → CID
+    │       └─→ alert with CID
+
+User imports CID
+    │
+    ├─→ window.onIPFSImportCID(cid)
+    │       ├─→ fetch https://w3s.link/ipfs/<cid>
+    │       └─→ setOtherEvents() → FullCalendar re-renders
+
 User mints timeslot
     │
-    ├─→ uploadToIPFS() → get CID
+    ├─→ uploadDataToIPFS() → get CID
     ├─→ mintTimeslot(CID, ...) → TimeslotNFT.mintTimeslot() → tokenId
     └─→ saveEvent() → localStorage + calendar
 
@@ -198,23 +223,45 @@ Handles escrow booking without a middleman.
 ### Prerequisites
 - A modern browser with [MetaMask](https://metamask.io/) installed
 - Polygon wallet with some POL for gas (if using on-chain features)
+- A free [web3.storage](https://web3.storage/) account for IPFS uploads
 
 ### Run locally
-```bash
-# No build step needed!
-# Just open index.html in your browser:
-open decent-calendar-vanilla/index.html
 
-# Or serve with any static server:
-npx serve decent-calendar-vanilla
+**Option 1 — from the vanilla folder (simplest):**
+```bash
+cd decent-calendar-vanilla
+npm start
+# Opens http://localhost:8080 automatically
+```
+
+**Option 2 — from the repository root:**
+```bash
+npm start
+# Serves decent-calendar-vanilla at http://localhost:8080
+```
+
+**Option 3 — without npm scripts:**
+```bash
+npx http-server decent-calendar-vanilla -p 8080 -o --cors
+# or
 python3 -m http.server 8080 --directory decent-calendar-vanilla
 ```
 
-That's it. No npm install, no webpack, no build.
+No build step, no webpack, no `npm install` required for the vanilla app.
 
 ---
 
 ## 8. Configuration
+
+### IPFS via web3.storage (w3up)
+
+IPFS uploads now use the **w3up / web3.storage email-auth flow** — no API keys needed.
+
+1. Click the IPFS icon in the header
+2. Click **"Enter Email"** in the waiting modal
+3. Enter your [web3.storage](https://web3.storage/) email address
+4. Check your email and click the confirmation link
+5. Done — your browser stores credentials in IndexedDB for future sessions
 
 ### PayPal Client ID (for PayPal payments)
 
@@ -225,26 +272,14 @@ localStorage.setItem('paypal_client_id', 'YOUR_PAYPAL_CLIENT_ID');
 
 Get your client ID at [developer.paypal.com](https://developer.paypal.com/).
 
-### Pinata API Keys (for IPFS uploads)
-
-Open the browser console and run:
-```js
-localStorage.setItem('pinata_api_key', 'YOUR_API_KEY');
-localStorage.setItem('pinata_api_secret', 'YOUR_API_SECRET');
-```
-
-Get your free API keys at [pinata.cloud](https://www.pinata.cloud/).
-
-Without keys, events are saved to `localStorage` only (still fully functional for personal use).
-
 ### Contract Addresses
 
-After deploying contracts, edit `js/contract.js`:
+After deploying contracts, edit `decent.config.js`:
 ```js
-const CONTRACT_ADDRESSES = {
+contractAddresses: {
   TimeslotNFT: '0x...',
   TimeslotMarket: '0x...',
-};
+},
 ```
 
 ---

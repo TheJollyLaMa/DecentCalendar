@@ -1,140 +1,359 @@
 /* IPFSStatus.js — <ipfs-status> Web Component (Shadow DOM)
-   Pinata IPFS connection via localStorage API keys.
-   Exposes window.uploadToIPFS() and window.fetchFromIPFS() as globals.
-   Fires window.onIPFSUploadClick() on click. */
+   w3up / web3.storage email-auth flow (no Pinata API keys needed).
+   Exposes window.w3upClient, window.connectToW3up, window.promptForEmail.
+   Fires window.onIPFSUploadClick() on status-circle click.
+   Shows CID import UI in the hover popup. */
 
-const _IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
-
-class IPFSStatus extends HTMLElement {
+export class IPFSStatus extends HTMLElement {
   constructor() {
     super();
-    this._connected = false;
+    this.attachShadow({ mode: 'open' });
+    this.ipfsConnected = false;
   }
 
   connectedCallback() {
-    this._shadow = this.attachShadow({ mode: 'open' });
-    this._exposeGlobals();
-    this._checkLocalKeys();
-    this._render();
+    this.render();
+    this.renderWaitingModal();
+
+    // Global hook: email prompt for waiting-modal "Enter Email" button
+    window.promptForEmail = async () => {
+      const email = prompt('Enter your email to login:');
+      if (!email) {
+        window.hideIPFSWaitingModal();
+        alert('Please enter a valid email to login.');
+        return;
+      }
+      await this.finishW3upLogin(email);
+    };
+
+    // Global hook: trigger w3up connect flow from anywhere
+    window.connectToW3up = async () => {
+      if (!this.ipfsConnected) {
+        await this.connectToW3up();
+      } else {
+        console.log('Already connected to IPFS.');
+      }
+    };
+
+    this.checkForStoredCredentials();
+
+    this.statusWrapper = this.shadowRoot.getElementById('ipfs-status');
+    this.ipfsTickerCircle = this.shadowRoot.getElementById('ipfs-ticker-circle');
+    this.ipfsHoverPopup = this.shadowRoot.getElementById('ipfsHoverPopup');
+
+    // Status circle click: trigger calendar upload (if connected) or connect flow
+    if (this.statusWrapper) {
+      this.statusWrapper.addEventListener('click', async () => {
+        if (window.w3upClient) {
+          if (window.onIPFSUploadClick) {
+            await window.onIPFSUploadClick();
+          }
+        } else {
+          window.connectToW3up();
+        }
+      });
+
+      this.statusWrapper.addEventListener('mouseenter', () => {
+        if (this.ipfsHoverPopup) this.ipfsHoverPopup.style.display = 'block';
+      });
+
+      this.statusWrapper.addEventListener('mouseleave', () => {
+        if (this.ipfsHoverPopup) this.ipfsHoverPopup.style.display = 'none';
+      });
+    }
+
+    // Default hover message before connection
+    if (this.ipfsHoverPopup) {
+      this.ipfsHoverPopup.innerHTML = 'Not connected to IPFS';
+    }
+
+    // Wire CID import button
+    const importBtn = this.shadowRoot.getElementById('cid-import-btn');
+    if (importBtn) {
+      importBtn.addEventListener('click', async () => {
+        const cid = this.shadowRoot.getElementById('cid-import-input').value.trim();
+        if (cid && window.onIPFSImportCID) {
+          await window.onIPFSImportCID(cid);
+        }
+      });
+    }
   }
 
-  // ---- Rendering ----
+  // ---- w3up Connection ----
 
-  _render() {
-    const statusText = this._connected ? 'IPFS: ✅ connected' : 'IPFS: disconnected';
-    this._shadow.innerHTML = `
-      <style>
-        :host { display: block; }
-        .ipfs-indicator {
-          font-family: chalkduster, fantasy, sans-serif;
-          font-size: 0.75rem;
-          color: #666;
-          cursor: pointer;
-          padding: 4px 8px;
-          border-radius: 4px;
-          transition: color 0.3s ease, text-shadow 0.3s ease;
-          white-space: nowrap;
-          user-select: none;
-        }
-        .ipfs-indicator:hover {
-          color: #0ff;
-          text-shadow: 0 0 6px #0ff;
-        }
-        .ipfs-indicator.connected {
-          color: #0f0;
-          text-shadow: 0 0 5px #0f0;
-        }
-        .ipfs-indicator.connected:hover {
-          color: #0f0;
-          text-shadow: 0 0 10px #0f0;
-        }
-      </style>
-      <div class="ipfs-indicator ${this._connected ? 'connected' : ''}"
-           title="Click to manage IPFS / Pinata connection">
-        ${statusText}
+  async checkForStoredCredentials() {
+    try {
+      const { connectW3upClient } = await import('../helpers/ipfs/w3upClient.js');
+      const result = await connectW3upClient(true);
+      if (result) {
+        this.ipfsConnected = true;
+        window.w3upClient = result.client;
+        this.updateUIConnected();
+        if (window.onIPFSReady) window.onIPFSReady(result.client);
+      } else {
+        console.warn('No stored credentials found.');
+        window.showIPFSWaitingModal();
+      }
+    } catch (err) {
+      console.warn('Auto-connect failed:', err);
+      window.showIPFSWaitingModal();
+    }
+  }
+
+  async connectToW3up() {
+    try {
+      const { connectW3upClient } = await import('../helpers/ipfs/w3upClient.js');
+      const stored = await connectW3upClient(true);
+      if (stored) {
+        this.ipfsConnected = true;
+        window.w3upClient = stored.client;
+        this.updateUIConnected();
+        if (window.onIPFSReady) window.onIPFSReady(stored.client);
+        return;
+      }
+      // No stored credentials — show modal then prompt
+      window.showIPFSWaitingModal();
+    } catch (err) {
+      console.error('IPFS connection failed:', err);
+    }
+  }
+
+  async finishW3upLogin(email) {
+    try {
+      const client = await window.w3up.create();
+      const account = await client.login(email);
+      if (account.plan) await account.plan.wait();
+      const spaces = await client.spaces();
+      if (!spaces || !spaces.length) throw new Error('No spaces found after login.');
+      const space = spaces[0];
+      await client.setCurrentSpace(space.did());
+      window.hideIPFSWaitingModal();
+      this.ipfsConnected = true;
+      window.w3upClient = client;
+      this.updateUIConnected();
+      if (window.onIPFSReady) window.onIPFSReady(client);
+    } catch (err) {
+      window.hideIPFSWaitingModal();
+      console.error('IPFS login failed:', err);
+      alert('Failed to connect to IPFS: ' + err.message);
+    }
+  }
+
+  // ---- UI Updates ----
+
+  updateUIConnected() {
+    if (this.statusWrapper) {
+      this.statusWrapper.classList.remove('ipfs-disconnected');
+      this.statusWrapper.classList.add('ipfs-connected');
+    }
+    // Animate DID ticker if space available
+    if (this.ipfsTickerCircle && window.w3upClient) {
+      try {
+        const currentSpace = window.w3upClient.currentSpace
+          ? (typeof window.w3upClient.currentSpace === 'function'
+              ? window.w3upClient.currentSpace()
+              : window.w3upClient.currentSpace)
+          : null;
+        const did = currentSpace && currentSpace.did ? currentSpace.did() : '';
+        if (did) this._animateTicker(did);
+      } catch (e) {
+        console.warn('Ticker animation error:', e);
+      }
+    }
+    this.renderSnapshotHistory();
+  }
+
+  _animateTicker(did) {
+    const circle = this.ipfsTickerCircle;
+    circle.innerHTML = '';
+    const prefix = did.slice(8, 14);
+    const suffix = did.slice(-4);
+
+    [...prefix].forEach(char => {
+      const span = document.createElement('span');
+      span.classList.add('ticker-letter');
+      span.textContent = char;
+      circle.appendChild(span);
+    });
+
+    for (let i = 0; i < 4; i++) {
+      const img = document.createElement('img');
+      img.classList.add('ticker-letter');
+      img.src = 'assets/IPFS_Logo.png';
+      img.style.width = '12px';
+      img.style.height = '12px';
+      circle.appendChild(img);
+    }
+
+    [...suffix].forEach(char => {
+      const span = document.createElement('span');
+      span.classList.add('ticker-letter');
+      span.textContent = char;
+      circle.appendChild(span);
+    });
+
+    const letters = circle.querySelectorAll('.ticker-letter');
+    const centerX = circle.offsetWidth / 2 || 50;
+    const centerY = circle.offsetHeight / 2 || 50;
+    const radius = 45;
+    const angleStep = (2 * Math.PI) / letters.length;
+    letters.forEach((letter, i) => {
+      const angle = i * angleStep;
+      letter.style.position = 'absolute';
+      letter.style.left = `${centerX + radius * Math.cos(angle)}px`;
+      letter.style.top = `${centerY + radius * Math.sin(angle)}px`;
+    });
+
+    let angle = 0;
+    const rotate = () => {
+      circle.style.transform = `rotate(${angle}deg)`;
+      angle += 0.2;
+      requestAnimationFrame(rotate);
+    };
+    rotate();
+  }
+
+  renderSnapshotHistory() {
+    if (!this.ipfsHoverPopup) return;
+    const history = JSON.parse(localStorage.getItem('calendarHistory') || '[]');
+    const links = history
+      .slice(0, 10)
+      .map(entry => {
+        const date = new Date(entry.timestamp).toLocaleString();
+        const cls = entry.timestamp.startsWith(new Date().toISOString().slice(0, 10))
+          ? 'snapshot-today'
+          : 'snapshot-old';
+        return `<div class="${cls}"><a href="https://w3s.link/ipfs/${entry.cid}" target="_blank">${date}</a></div>`;
+      })
+      .join('');
+
+    this.ipfsHoverPopup.innerHTML = `
+      <strong>${this.ipfsConnected ? '✅ Connected to IPFS' : 'Not connected to IPFS'}</strong>
+      ${links}
+      <div id="cid-import-area" style="margin-top:8px;">
+        <input id="cid-import-input" type="text" placeholder="Enter CID to import..."
+          style="width:180px;padding:4px;background:#000;color:#0ff;border:1px solid #0ff;border-radius:4px;" />
+        <button id="cid-import-btn"
+          style="padding:4px 8px;background:#0ff;color:#000;border:none;border-radius:4px;cursor:pointer;">
+          Import
+        </button>
       </div>
     `;
-    this._shadow.querySelector('.ipfs-indicator').addEventListener('click', () => {
-      if (window.onIPFSUploadClick) window.onIPFSUploadClick();
-    });
-  }
 
-  // ---- Expose globals for events.js / calendar.js ----
-
-  _exposeGlobals() {
-    const self = this;
-
-    window.uploadToIPFS = async function (jsonData) {
-      const apiKey = localStorage.getItem('pinata_api_key') || '';
-      const apiSecret = localStorage.getItem('pinata_api_secret') || '';
-
-      if (!apiKey || !apiSecret) {
-        console.warn('No Pinata keys found — falling back to localStorage only');
-        return null;
-      }
-
-      try {
-        const uniqueId =
-          jsonData.tokenId !== undefined
-            ? jsonData.tokenId
-            : typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : Date.now() + '-' + Math.random().toString(36).slice(2);
-
-        const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            pinata_api_key: apiKey,
-            pinata_secret_api_key: apiSecret,
-          },
-          body: JSON.stringify({
-            pinataContent: jsonData,
-            pinataMetadata: { name: `decent-calendar-${uniqueId}` },
-          }),
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`IPFS upload failed: ${errText}`);
+    // Re-wire import button after re-render
+    const importBtn = this.ipfsHoverPopup.querySelector('#cid-import-btn');
+    if (importBtn) {
+      importBtn.addEventListener('click', async () => {
+        const input = this.ipfsHoverPopup.querySelector('#cid-import-input');
+        const cid = input ? input.value.trim() : '';
+        if (cid && window.onIPFSImportCID) {
+          await window.onIPFSImportCID(cid);
         }
+      });
+    }
+  }
 
-        const result = await response.json();
-        console.log('Pinned to IPFS:', result.IpfsHash);
-        self._setConnected(true);
-        return result.IpfsHash;
-      } catch (err) {
-        console.error('uploadToIPFS error:', err);
-        self._setConnected(false);
-        return null;
+  // ---- Waiting Modal Helpers ----
+
+  renderWaitingModal() {
+    // Managed by IPFSWaitingModal component; expose show/hide globals
+    window.showIPFSWaitingModal = () => {
+      let modal = document.querySelector('waiting-modal');
+      if (!modal) {
+        modal = document.createElement('waiting-modal');
+        document.body.appendChild(modal);
       }
     };
-
-    window.fetchFromIPFS = async function (cid) {
-      const response = await fetch(`${_IPFS_GATEWAY}${cid}`);
-      if (!response.ok) throw new Error(`Failed to fetch from IPFS: ${cid}`);
-      return response.json();
+    window.hideIPFSWaitingModal = () => {
+      const modal = document.querySelector('waiting-modal');
+      if (modal) modal.remove();
     };
   }
 
-  // ---- Connection State ----
+  // ---- Shadow DOM Render ----
 
-  /** Public method to update connection state (called by <waiting-modal>). */
-  setConnected(connected) {
-    this._connected = connected;
-    this._render();
-  }
-
-  /** @private */
-  _setConnected(connected) {
-    this.setConnected(connected);
-  }
-
-  _checkLocalKeys() {
-    const apiKey = localStorage.getItem('pinata_api_key');
-    const apiSecret = localStorage.getItem('pinata_api_secret');
-    this._connected = !!(apiKey && apiSecret);
+  render() {
+    this.shadowRoot.innerHTML = `
+      <link rel="stylesheet" href="css/header.css" />
+      <style>
+        :host { display: block; }
+        .ticker-wrapper {
+          position: relative;
+          width: 100px;
+          height: 100px;
+          cursor: pointer;
+        }
+        #ipfs-status {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        #ipfs-status.ipfs-disconnected #ipfsIcon {
+          filter: grayscale(80%) drop-shadow(0 0 4px #555);
+        }
+        #ipfs-status.ipfs-connected #ipfsIcon {
+          filter: drop-shadow(0 0 8px #0f0);
+          animation: glow-pulse 1.5s ease-in-out infinite alternate;
+        }
+        #ipfsIcon {
+          width: 40px;
+          height: 40px;
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2;
+        }
+        #ipfs-ticker-circle {
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 90px;
+          height: 90px;
+        }
+        .ticker-letter {
+          position: absolute;
+          font-size: 8px;
+          color: #0ff;
+          font-family: monospace;
+        }
+        #ipfsHoverPopup {
+          display: none;
+          position: absolute;
+          top: 110%;
+          left: 0;
+          background: rgba(0,0,0,0.92);
+          border: 1px solid #0ff;
+          border-radius: 8px;
+          padding: 10px;
+          min-width: 240px;
+          z-index: 1000;
+          color: #0ff;
+          font-family: monospace;
+          font-size: 0.75rem;
+        }
+        #ipfsHoverPopup a {
+          color: #0ff;
+          text-decoration: underline;
+        }
+        .snapshot-today { color: #0f0; }
+        .snapshot-old   { color: #0ff; }
+        @keyframes glow-pulse {
+          from { filter: drop-shadow(0 0 6px rgba(0,255,0,0.5)); }
+          to   { filter: drop-shadow(0 0 16px rgba(0,255,0,1)); }
+        }
+      </style>
+      <div id="ipfs-status" class="ipfs-disconnected">
+        <div class="ticker-wrapper">
+          <div id="ipfs-ticker-circle"></div>
+          <img id="ipfsIcon" src="assets/IPFS_Logo.png" alt="IPFS" />
+        </div>
+        <div id="ipfsHoverPopup">Not connected to IPFS</div>
+      </div>
+    `;
   }
 }
 
-customElements.define('ipfs-status', IPFSStatus);
+if (!customElements.get('ipfs-status')) {
+  customElements.define('ipfs-status', IPFSStatus);
+}

@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DecentCalendar</title>
+  <title>🗓️ Decent Calendar 🗓️</title>
+  <link rel="icon" type="image/png" href="assets/IPFS_Logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="css/header.css" />
   <link rel="stylesheet" href="css/calendar.css" />
 </head>
 <body>
 
+  <!-- w3up browser bundle — must load before ES module components -->
+  <script src="https://bafybeicqxq54ncvkxvwdbov6ljgtyyrcpmek3ic2fxrwwsigmh4ud4s2mu.ipfs.w3s.link/browser.min.js"></script>
+
   <!-- Web Component Header: <ipfs-status> | <app-title> | <wallet-connect> -->
   <app-header></app-header>
-
-  <!-- IPFS Waiting Modal (Web Component) -->
-  <waiting-modal id="ipfs-waiting-modal"></waiting-modal>
 
   <!-- Main Calendar Web Component (light DOM — FullCalendar needs real DOM) -->
   <decent-calendar></decent-calendar>
