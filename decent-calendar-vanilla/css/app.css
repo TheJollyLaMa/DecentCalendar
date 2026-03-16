@@ -1,0 +1,304 @@
+/* =========================================================
+   app.css — Global styles for DecentCalendar (vanilla)
+   Cyberpunk neon theme, SecretPyramid background
+   ========================================================= */
+
+/* General Styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: chalkduster, fantasy, sans-serif;
+  background: url('../assets/SecretPyramid.gif') no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+/* App Container */
+#main-content {
+  text-align: center;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* ---- Header ---- */
+#decent-head {
+  padding: 20px;
+  position: relative;
+  z-index: 10;
+  text-align: center;
+}
+
+#wallet-info {
+  margin: 10px 0;
+}
+
+.wallet-address-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.wallet-address-part {
+  font-size: 1.5rem;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+}
+
+.wallet-icons {
+  display: flex;
+  gap: 5px;
+}
+
+.icon-small {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px #0ff);
+  animation: glow 1.5s infinite alternate;
+}
+
+/* Wallet Button */
+.wallet-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wallet-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+}
+
+.wallet-logo {
+  width: 50px;
+  height: 50px;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.8));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.wallet-logo:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 20px rgba(0, 255, 255, 1));
+}
+
+/* IPFS status indicator */
+.ipfs-indicator {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+.ipfs-indicator.connected {
+  color: #0f0;
+  text-shadow: 0 0 5px #0f0;
+}
+
+/* ---- Neon Text ---- */
+.neon-text {
+  font-size: 2rem;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+  margin-bottom: 10px;
+}
+
+/* ---- Calendar Controls ---- */
+#calendar-controls {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.address-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.address-input input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 2px solid #0ff;
+  border-radius: 5px;
+  background: black;
+  color: white;
+  width: 300px;
+  text-align: center;
+}
+
+.address-input button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: 2px solid #0ff;
+  border-radius: 5px;
+  background: black;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.address-input button:hover {
+  background: #0ff;
+  color: black;
+}
+
+/* ---- Add Event Button ---- */
+.add-event-button {
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0ff;
+  background: black;
+  border: 2px solid #0ff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+}
+
+.add-event-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #0ff, 0 0 30px #00f;
+}
+
+/* ---- Mint Button ---- */
+.mint-button {
+  padding: 8px 16px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #ffd700;
+  background: black;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ffd700, 0 0 20px rgba(255, 215, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mint-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #ffd700, 0 0 40px rgba(255, 215, 0, 0.6);
+}
+
+/* ---- Payment Options ---- */
+.payment-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.payment-options button {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 2px solid #0ff;
+  border-radius: 8px;
+  background: black;
+  color: #0ff;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.payment-options button:hover {
+  background: #0ff;
+  color: black;
+}
+
+/* ---- Utility ---- */
+.hidden {
+  display: none !important;
+}
+
+/* ---- Footer ---- */
+.App-footer {
+  margin-top: 20px;
+  color: #fff;
+  text-shadow: 0 0 5px #fff, 0 0 10px #0ff;
+  font-size: 0.9rem;
+  padding: 10px 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.App-footer img {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px #0ff);
+}
+
+/* ---- Glow Animation ---- */
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
+  }
+  to {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 1));
+  }
+}
+
+/* ---- Calendar Toggle labels ---- */
+#calendar-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+#calendar-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.calendar-shower-wallet-addr {
+  display: inline;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #00fff29b;
+}
+
+/* modal info text */
+.modal-info {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 12px;
+}
