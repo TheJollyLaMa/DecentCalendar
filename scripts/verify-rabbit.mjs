@@ -76,6 +76,13 @@ try {
     assert.ok((await page.locator('#slot-details-content').textContent()).includes('not a verified booking'));
     assert.ok((await page.locator('#slot-details-content').textContent()).includes('ENS unavailable'));
     await page.locator('#slot-details [data-close]').click();
+    await page.locator('#open-booking-registry').click();
+    await page.locator('#booking-registry-gate').filter({ hasText: 'Transactions are disabled' }).waitFor();
+    await page.locator('#booking-id').fill('0');
+    await page.locator('#load-booking-id').click();
+    await page.locator('#booking-registry-status').filter({ hasText: 'not deployed and pinned' }).waitFor();
+    assert.equal(await page.locator('#booking-registry [data-write]:enabled').count(), 0);
+    await page.locator('#booking-registry [data-close]').click();
     assert.ok(requests.every(request => !request.includes('pinFileToIPFS')));
     assert.equal(await page.locator('.rabbit-highlight').count(), 0);
     assert.equal(await page.locator('.rabbit-glyph').evaluate(node => getComputedStyle(node).animationName), 'none');

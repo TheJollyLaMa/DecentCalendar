@@ -42,6 +42,10 @@ function eventsForOwner(events, owner) {
       result.assetId = asset.id;
       result.rateAmount = event.rateAmount;
     }
+    if (event.hardline !== undefined) {
+      if (typeof event.hardline !== 'boolean') throw new Error('Invalid hardline option.');
+      result.hardline = event.hardline;
+    }
     for (const field of ['id', 'date', 'startTime', 'endTime', 'timezone', 'status', 'meetingRoomId', 'createdAt', 'ipfsCID', 'buyer', 'paypalOrderId']) {
       if (event[field] !== undefined && event[field] !== null) result[field] = text(event[field], 500, field);
     }
@@ -109,6 +113,7 @@ export function createPublicAvailability(storage, wallet) {
       title: event.title, description: event.description, start: event.start, end: event.end,
       hourlyRate: event.hourlyRate, currency: event.currency, isPublic: true,
       ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
+      ...(event.hardline !== undefined ? { hardline: event.hardline } : {}),
     })),
   };
 }
@@ -121,5 +126,6 @@ export function importPublicAvailability(document) {
     owner: valid.owner, creator: valid.owner, hourlyRate: event.hourlyRate,
     currency: event.currency, isPublic: true, classNames: ['imported-event'], readOnly: true,
     ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
+    ...(event.hardline !== undefined ? { hardline: event.hardline } : {}),
   })) };
 }

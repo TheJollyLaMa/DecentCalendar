@@ -89,6 +89,7 @@ class DecentCalendar extends HTMLElement {
     document.getElementById('event-asset').dispatchEvent(new Event('change'));
     document.getElementById('event-public').checked = true;
     document.getElementById('event-private').checked = false;
+    document.getElementById('event-hardline').checked = false;
     document.getElementById('add-event-modal').classList.remove('hidden');
   }
 
@@ -125,6 +126,7 @@ class DecentCalendar extends HTMLElement {
       end,
       hourlyRate,
       rateAmount,
+      hardline: document.getElementById('event-hardline').checked,
       assetId: asset.id,
       currency: asset.symbol,
       isPublic,

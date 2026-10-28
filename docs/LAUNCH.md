@@ -4,7 +4,9 @@
 
 The White Rabbit tutorial, ENS-enriched right-ankh profile and calendar
 identity, exact ETH/USDC agreement previews, and existing deliberate storage
-controls. These require only the existing GitHub Pages deployment.
+controls, plus the release-gated registry UI. These require only the existing
+GitHub Pages deployment. The live config has empty registry address/code hash
+and `writesEnabled: false`; no payment or approval can be requested.
 No Discord integration or OAuth credentials are needed.
 
 The old Ommm/SmartHome decorations are removed from the runtime and Pages
@@ -60,6 +62,7 @@ does not: **do not deploy it**.
 npm ci --ignore-scripts
 npm test
 npm run test:escrow
+npm run test:base-fork
 ```
 
 Compiler: solc 0.8.30, optimizer enabled with 200 runs, EVM Shanghai.
@@ -67,7 +70,23 @@ The test chain is ephemeral, in-process Hardhat with synthetic accounts.
 It is not a funded mainnet fork or an independent audit. The contract test
 suite covers ETH/USDC accounting, stale terms, competing/duplicate bookings,
 refund/settlement authorization and timing, failure recovery, reentrancy,
-free sessions, unsupported transfers and terminal states.
+free sessions, unsupported transfers and terminal states. The 18 local-EVM
+tests also exercise the production adapter, exact start/end/seven-day
+boundaries, coherent post-receipt block reads, pending-action exclusion,
+wallet changes, bytecode/policy pinning, runtime verification and aggregate
+custody-versus-credits conservation.
+
+On 2026-10-28, the separate canonical-USDC fork test passed at Base block
+53215844 through `https://base-rpc.publicnode.com`. It exercises actual
+USDC proxy/code/state, exact approval, escrow, refund/withdrawal and
+settlement with 1.46955 USDC host / 0.04545 USDC fee. Only the local
+in-process fork impersonates a public USDC holder and signs synthetic
+transactions; the upstream RPC is read-only. Hardhat uses OP Isthmus
+execution rules for this test. It is not production gas/finality acceptance
+or an independent review. The first public Base RPC was rate-limited;
+network failures must fail the test, not turn into a skipped/pass result.
+Override `DCAL_BASE_RPC` with an appropriate trusted RPC when needed;
+never commit its credentials. Repeat against current state before launch.
 
 The current package audit reports eight advisories (five high, two moderate,
 one low; no critical). They include development compiler/EVM/ethers tooling
@@ -81,14 +100,36 @@ dependency review remain part of the production release checks.
 Before asking the steward to sign:
 
 1. Complete independent contract review and address findings.
-2. Execute a Base fork suite using canonical USDC, plus exact boundary and
-   adversarial/invariant coverage. A mock ERC-20 is not that acceptance test.
-3. Finish the new ABI/frontend integration: create/publish on-chain offers,
-   explicit terms/hardline agreement, exact allowance and payment, confirmed
-   receipts, status reconciliation, cancellation/refund/credit withdrawal.
+2. Repeat the now-passing Base fork suite and boundary/conservation tests
+   against the reviewed source. A mock ERC-20 alone is not that acceptance.
+3. Rehearse the wired ABI/frontend integration against an isolated deployment
+   of the reviewed source:
+   public offers, terms/hardline consent, separate exact USDC approval and
+   payment, confirmed receipts, recovery, cancellation/refund/credit withdrawal.
    Never interpret imported JSON or local `status`/`buyer` as chain truth.
+   Resolve cross-slot availability conflicts before a general scheduling
+   release; the registry reserves each ID once but does not detect overlapping
+   offers or external-calendar conflicts.
+   Repeat the minimal approved lifecycle on Base after deployment, before
+   opening general paid booking.
 4. Re-resolve and confirm the fee address; verify canonical USDC bytecode
    and chain ID; prepare the exact constructor arguments and bytecode hash.
+
+### Read-only preparation and post-deployment pinning
+
+The operator can generate unsigned deployment calldata without any key:
+
+```sh
+npm run prepare:booking -- --fee-recipient 0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a
+```
+
+This rechecks Base, canonical USDC code/decimals and the current Ethereum
+ENS record against the supplied exact address. It compiles the same source
+and settings used by the tests and prints constructor arguments, source
+hash, creation-code hash and deployment data. It sends no transaction.
+This artifact is **not permission to sign before independent review**.
+Rebuild after any source change and reconfirm the exact recipient with the
+steward. There is deliberately no command that accepts a private key.
 
 Then the steward uses their wallet on **Base**, funded with enough ETH
 for deployment gas, to deploy the reviewed registry. Constructor arguments
@@ -103,6 +144,49 @@ and full-refund path before opening general paid booking. Source deployment
 is not contract deployment. Adding a token later requires a reviewed
 chain/address/decimals/icon registry entry and matching contract support;
 symbols or an arbitrary image URL cannot enable token transfers.
+
+After deployment, the same preparation command with `--address 0x...`
+compares deployed executable code to the local compilation (accounting
+for Solidity immutable references), verifies the immutable addresses and
+policy getters, and prints `bookingConfig`. Copy it into the app's
+`booking` config **with writes still false**. Only open transactions after
+the release checks and minimal live rehearsal are explicitly approved.
+Merely entering an address or flipping the boolean cannot bypass runtime
+hash, policy, asset and Base-wallet checks.
+
+### Booking and recovery UI
+
+1. Connect the host explicitly on Base. Create a public local draft with
+   an identified asset, exact rate, UTC-equivalent interval and hardline
+   preference. Click the slot, then Review public on-chain offer.
+2. Review permanent public title/terms and confirm publication. No private
+   description, room ID or arbitrary metadata fetch is included. The ID
+   comes from the successful registry receipt, including ID zero.
+3. Share/save the `?booking=<id>` link. It always reads the configured,
+   hash-pinned registry. The original local draft remains unverified.
+4. Buyer reviews on-chain UTC/local time, exact asset/address/gross, fee
+   recipient and cancellation terms, then checks agreement. For paid USDC,
+   approve exactly the slot gross; wait for its receipt, review again and
+   book separately. Approval alone reserves no slot. Free USDC requires
+   neither allowance nor a token transfer.
+5. Refund/release/withdraw-offer controls reflect chain state, party and
+   latest block time. The contract re-enforces these conditions. No timer
+   or artwork can authorize payment.
+6. Resolution creates pull credit. My withdrawal credits reads both asset
+   balances for the connected wallet. Confirm the full destination address
+   before withdrawal; a failed transfer retains the credit for recovery.
+7. Submitted and confirmed receipt links remain visible for reconciliation.
+   Identical successful transaction speed-ups are recognized; cancellations
+   or different replacement instructions are not reported as success.
+   Pending actions block duplicate in-tab submissions. Lost tabs and
+   cross-tab activity require re-reading by ID before retrying; one mined
+   receipt is not a claim of irreversible Base finality.
+
+ENS names/avatars/banners enrich the actual on-chain host/buyer without
+changing authority. Show checked slot on calendar adds an explicitly labeled
+snapshot; clicking it re-reads the registry. This does not discover all
+bookings, follow the chain in the background, or implement a wallet index.
+Keep the booking link and wallet transaction history for recovery.
 
 ## Meeting launch
 

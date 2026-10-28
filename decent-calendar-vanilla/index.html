@@ -18,6 +18,7 @@
   <nav class="onboarding-bar" aria-label="Getting started">
     <button id="rabbit-tour-launch" type="button"><span class="rabbit-glyph" aria-hidden="true">&#128007;</span> Follow the white rabbit <small>Learn DCal - no wallet needed</small></button>
     <a href="#release-readiness">Launch readiness</a>
+    <button id="open-booking-registry" type="button">Bookings / recover / withdraw</button>
   </nav>
 
   <!-- Main Calendar Web Component (light DOM — FullCalendar needs real DOM) -->
@@ -30,8 +31,8 @@
 
   <section id="release-readiness" aria-labelledby="readiness-title">
     <h2 id="readiness-title">The trail to live bookings</h2>
-    <p>Available now: local drafts, ENS profile and artwork, exact ETH/USDC agreement previews, backups and deliberate public availability.</p>
-    <p>Before taking payment: deploy and verify the new Base escrow, resolve and confirm DecentAgency.eth's fee address, test canonical USDC on a Base fork and complete an independent contract review. No wallet address is inferred from artwork or a display name.</p>
+    <p>Available now: local drafts with a hardline preference, ENS profile and artwork, exact ETH/USDC agreement previews, backups and deliberate public availability. The registry UI includes booking recovery and withdrawal controls, but transactions remain disabled.</p>
+    <p>Before taking payment: complete an independent contract review, repeat the passing canonical-USDC fork tests, resolve and confirm DecentAgency.eth's fee address, deploy and pin the Base booking registry, and rehearse a minimal approved live lifecycle. No wallet address is inferred from artwork or a display name.</p>
     <p>Before live calls: test booking-bound wallet challenges, waiting-room admission, media consent and the optional five-minute hardline countdown. App-enforced P2P ending is not server-enforced room expiry.</p>
     <p>Agreed v1 policy: nontransferable records, full refunds before the start, buyer-authorized release after the end or host-authorized full refund, buyer refund after seven unresolved days, no admin dispute power. A call ending never releases money automatically.</p>
     <a href="https://github.com/TheJollyLaMa/DecentCalendar/issues/22" target="_blank" rel="noopener noreferrer">Track the release plan</a>
@@ -66,6 +67,19 @@
     <h2 id="slot-details-title"></h2>
     <div id="slot-details-content"></div>
     <p id="slot-details-status" role="status"></p>
+  </dialog>
+
+  <dialog id="booking-registry" aria-labelledby="booking-registry-title">
+    <button type="button" data-close aria-label="Close booking registry">Close</button>
+    <h2 id="booking-registry-title">Base booking registry</h2>
+    <p id="booking-registry-gate"></p>
+    <label>Booking ID <input id="booking-id" inputmode="numeric" placeholder="0" autocomplete="off" /></label>
+    <button id="load-booking-id" type="button">Read booking from Base</button>
+    <button id="load-booking-credits" type="button">My withdrawal credits</button>
+    <div id="booking-registry-content"></div>
+    <p id="booking-registry-status" role="status"></p>
+    <div id="booking-registry-transactions" aria-label="Transaction receipts" aria-live="polite"></div>
+    <p>Save your booking link and transaction hash. A lost tab does not cancel a transaction. Reload by ID and check the chain before retrying. Imported events and ENS artwork cannot grant booking or meeting rights.</p>
   </dialog>
 
   <dialog id="local-backup-dialog" aria-labelledby="local-backup-title">
@@ -120,6 +134,7 @@
         Hourly rate (exact decimal, preview only):
         <input type="text" inputmode="decimal" id="event-rate" name="hourlyRate" placeholder="0.05" />
       </label>
+      <label><input type="checkbox" id="event-hardline" /> Request a fixed-end meeting hardline (final five-minute warning; meetings not live)</label>
       <div class="checkbox-group">
         <label>
           <input type="checkbox" id="event-public" name="isPublic" checked />

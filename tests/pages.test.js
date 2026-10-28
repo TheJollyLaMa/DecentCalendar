@@ -16,6 +16,7 @@ test('Pages includes the active app and notices, not repository files or retired
       '.nojekyll', 'LICENSE', 'NOTICE', 'LICENSES/CC-BY-4.0.txt',
       'vendor/decent-head/2.0.0/NOTICE', 'vendor/decent-head/2.0.0/js/main.js',
       'vendor/decent-head/2.0.0/js/vendor/ethers.LICENSE.md', 'js/calendar-storage.js',
+      'js/booking-client.js', 'js/booking-ui.js',
     ]) await access(join(destination, file));
     for (const file of [
       '.git', '.github', 'tests', 'contracts', 'decent-calendar-react-app', 'package.json',

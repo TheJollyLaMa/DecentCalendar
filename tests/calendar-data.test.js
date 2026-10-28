@@ -96,3 +96,13 @@ test('legacy POL events retain denomination; malformed legacy data is not silent
   assert.throws(() => createLocalBackup(source, owner), SyntaxError);
   assert.equal(source.getItem(owner), '{broken JSON');
 });
+
+test('hardline preference survives backup and public projection but remains an unverified imported claim', () => {
+  const source = storage([event({ hardline: true })]);
+  assert.equal(createLocalBackup(source, owner).events[0].hardline, true);
+  const imported = importPublicAvailability(createPublicAvailability(source, owner)).events[0];
+  assert.equal(imported.hardline, true);
+  assert.equal(imported.readOnly, true);
+  assert.equal(imported.registrySnapshot, undefined);
+  assert.throws(() => createLocalBackup(storage([event({ hardline: 'true' })]), owner), /Invalid hardline/);
+});

@@ -6,6 +6,21 @@ let otherEvents = [];
 let myEventsVisible = true;
 let otherEventsVisible = true;
 let currentLookupAddress = '';
+const registrySlots = new Map();
+
+function showRegistrySlot(slot) {
+  const asset = window.DCalAssets.eventAsset({ assetId: slot.asset === '0x0000000000000000000000000000000000000000' ? 'base:eth' : 'base:usdc' });
+  registrySlots.set(`${slot.registry}:${slot.id}`, {
+    id: `registry:${slot.registry}:${slot.id}`, registryId: slot.id.toString(),
+    title: slot.metadata, creator: slot.host, buyer: /^0x0{40}$/i.test(slot.buyer) ? null : slot.buyer,
+    start: new Date(Number(slot.start) * 1000).toISOString(),
+    end: new Date(Number(slot.end) * 1000).toISOString(),
+    assetId: asset.id, currency: asset.symbol, registrySnapshot: true,
+    checkedAt: slot.now.toString(), classNames: ['registry-event'],
+  });
+  refreshCalendar();
+  calendarInstance?.gotoDate(new Date(Number(slot.start) * 1000));
+}
 
 /**
  * Initialize FullCalendar on the #calendar element.
@@ -32,7 +47,8 @@ function initCalendar() {
     eventDataTransform: (eventData) => ({
       ...eventData,
       originalTitle: eventData.title,
-      title: `${eventData.title} (${eventData.rateAmount ?? eventData.hourlyRate ?? 0} ${eventData.currency || 'POL'}/hr)`,
+      title: eventData.registrySnapshot ? `${eventData.title} (chain snapshot - refresh to verify)` :
+        `${eventData.title} (${eventData.rateAmount ?? eventData.hourlyRate ?? 0} ${eventData.currency || 'POL'}/hr)`,
       backgroundColor: eventData.backgroundColor || undefined,
       borderColor: eventData.borderColor || undefined,
       classNames: eventData.classNames || ['public-event'],
@@ -50,6 +66,7 @@ function getVisibleEvents() {
   const visible = [];
   if (myEventsVisible) visible.push(...myEvents);
   if (otherEventsVisible) visible.push(...otherEvents);
+  visible.push(...registrySlots.values());
   return visible;
 }
 
@@ -88,6 +105,7 @@ function clearCalendarEvents() {
   myEvents = [];
   otherEvents = [];
   currentLookupAddress = '';
+  registrySlots.clear();
   refreshCalendarToggle();
   refreshCalendar();
 }
@@ -119,6 +137,10 @@ function handleEventClick(info) {
   const props = fcEvent.extendedProps;
   const classNames = fcEvent.classNames || props.classNames || [];
 
+  if (props.registrySnapshot && window.DCalBookings) {
+    window.DCalBookings.open(props.registryId);
+    return;
+  }
   if (window.openSlotDetails) {
     void window.openSlotDetails({
       ...props, title: props.originalTitle || fcEvent.title,

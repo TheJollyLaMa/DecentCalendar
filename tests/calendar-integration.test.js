@@ -12,11 +12,12 @@ test('saving an event stays local, including public events and token ID zero', a
     localStorage: { getItem: key => records.get(key) ?? null, setItem: (key, value) => records.set(key, value) },
   });
   vm.runInContext(await source('js/events.js'), context);
-  await context.saveEvent('0xABC', { title: 'Public draft', tokenId: 0, isPublic: true });
+  await context.saveEvent('0xABC', { title: 'Public draft', tokenId: 0, isPublic: true, hardline: true });
   const events = JSON.parse(records.get('0xabc'));
   assert.equal(events[0].tokenId, 0);
   assert.equal(events[0].currency, 'ETH');
   assert.equal(events[0].ipfsCID, null);
+  assert.equal(events[0].hardline, true);
   records.set('0xabc', '{}');
   assert.throws(() => context.loadEventsRaw('0xabc'), /not an event array/);
   assert.equal(records.get('0xabc'), '{}');

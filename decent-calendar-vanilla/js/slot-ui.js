@@ -53,6 +53,14 @@ export function installSlotUI({ profiles }) {
       label('Legacy asset', `${event.currency || 'Unspecified'} - symbol-only record; no token identity or checkout`);
     }
     if (event.buyer) label('Participant wallet (local claim only)', event.buyer);
+    label('Hardline preference', event.hardline === true ? 'Fixed scheduled end, with final five-minute warning (meetings not live)' : 'No fixed-end hardline requested');
+    if (!event.readOnly && event.isPublic && window.DCalBookings) {
+      const publish = document.createElement('button');
+      publish.type = 'button';
+      publish.textContent = 'Review public on-chain offer';
+      publish.onclick = () => { close(); window.DCalBookings.publish(event); };
+      content.append(publish);
+    }
     label('Launch status', 'Checkout and booking-bound meetings require deployed/reviewed contracts. This preview cannot take payment or grant meeting access.');
     dialog.showModal();
     const identities = document.createElement('section');
@@ -86,15 +94,17 @@ export function installSlotUI({ profiles }) {
     const title = document.createElement('span');
     title.textContent = `${info.timeText ? `${info.timeText} ` : ''}${info.event.title}`;
     nodes.push(title);
-    const address = props.creator || props.owner;
-    if (/^0x[0-9a-f]{40}$/i.test(address || '')) {
+    const addresses = props.registrySnapshot
+      ? [['Host', props.creator], ['Buyer', props.buyer]]
+      : [['Host', props.creator || props.owner]];
+    for (const [role, address] of addresses) if (/^0x[0-9a-f]{40}$/i.test(address || '')) {
       const identity = document.createElement('span');
       identity.className = 'slot-identity';
-      identity.textContent = `${address.slice(0, 6)}...`;
+      identity.textContent = `${role}: ${address.slice(0, 6)}...`;
       nodes.push(identity);
       profiles.lookup(address).then(profile => {
-        identity.textContent = profile.name || `${address.slice(0, 6)}...`;
-        if (profile.avatar) identity.prepend(profileImage(profile.avatar, 'slot-avatar', 'Host ENS avatar'));
+        identity.textContent = `${role}: ${profile.name || `${address.slice(0, 6)}...`}`;
+        if (profile.avatar) identity.prepend(profileImage(profile.avatar, 'slot-avatar', `${role} ENS avatar`));
       }, error => {
         identity.title = `ENS unavailable: ${error.message}`;
         console.warn('[DCal calendar ENS]', error);

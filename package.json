@@ -4,7 +4,9 @@
     "start": "npx http-server decent-calendar-vanilla -p 8080 -o --cors",
     "serve:vanilla": "npx http-server decent-calendar-vanilla -p 8080 --cors",
     "serve:react": "cd decent-calendar-react-app && npm start",
-    "test:escrow": "node --test tests/escrow.test.mjs"
+    "test:escrow": "node --test tests/escrow.test.mjs",
+    "test:base-fork": "node --test tests/base-fork.test.mjs",
+    "prepare:booking": "node scripts/prepare-booking-deployment.mjs"
   },
   "devDependencies": {
     "ethers": "6.16.0",

@@ -12,6 +12,7 @@ const runtime = [
   'js/contract.js', 'js/events.js', 'js/payments.js', 'js/meetingRoom.js',
   'js/calendar.js', 'js/components/Calendar.js',
   'js/assets.js', 'js/ens-profile.js', 'js/profile-ui.js', 'js/slot-ui.js', 'js/tutorial.js',
+  'js/booking-client.js', 'js/booking-ui.js',
   'vendor/decent-head/2.0.0',
 ];
 

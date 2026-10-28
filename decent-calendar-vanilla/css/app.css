@@ -60,6 +60,10 @@ dialog label { display: block; margin: 12px 0; }
 dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 16rem; overflow: auto; }
 dialog input:not([type="checkbox"]) { max-width: 100%; box-sizing: border-box; }
 dialog [data-close] { float: right; position: sticky; top: 0; }
+#booking-registry button { margin: 6px; padding: 10px; }
+#booking-registry a { color: #7af0c6; }
+#booking-registry input:not([type="checkbox"]) { width: 100%; }
+#booking-registry-gate { border-left: 3px solid #bd7cff; padding-left: 12px; }
 button:focus-visible, input:focus-visible { outline: 3px solid #0ff; outline-offset: 3px; }
 
 .onboarding-bar, .rabbit-actions {

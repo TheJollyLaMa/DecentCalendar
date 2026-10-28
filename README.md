@@ -23,6 +23,19 @@ were deployed by this integration.
   unrelated Ommm/SmartHome decorations are removed. ETH animation has a
   reduced-motion still. No imported image or currency symbol can authorize
   payment. Gross rounds up and the 300 bps fee rounds down in base units.
+- **Booking registry integration (release-gated)** publishes public offers
+  from owned drafts, reads immutable UTC/asset/price/hardline terms, separates
+  exact USDC approval from booking, and reconciles confirmed receipts.
+  Buyer settlement, policy-authorized refunds, offer withdrawal and ETH/USDC
+  credit withdrawal are wired. `?booking=0` is a valid recovery link.
+  The Bookings / recover / withdraw control reports an undeployed registry
+  explicitly, never as an empty booking. Every read verifies the pinned Base
+  runtime hash and policy; transactions additionally require the release gate
+  and current Base wallet. No registry address is configured on the live site.
+- A recovered chain slot can be shown as a **checked calendar snapshot**,
+  enriched with host/buyer ENS display identities. Clicking it re-reads the
+  registry; artwork and local/imported fields never authorize payment.
+  Snapshots are cleared on wallet changes and are not an automatic index.
 - One canonical DecentHead 2.0.0 session: EIP-6963/injected-wallet discovery,
   explicit connect/disconnect, Base mainnet (8453), verified ENS display,
   orbit styling, storage-provider controls and a DCal About modal.
@@ -81,6 +94,29 @@ explicit lookup/error states rather than a silent worker fallback. The donor
 worktree's unfinished changes were not copied. Attribution and the donor
 NOTICE are retained.
 
+Booking reuse decision: inspected current standalone
+[DecentEscrow c316f2d](https://github.com/TheJollyLaMa/DecentEscrow/tree/c316f2dba007fea471cf0aa240a3943954cf0e91),
+`contracts/DecentEscrow.sol` (`EscrowMultiWorkOrder`), the Base marketplace
+escrow and
+[DecentMarket 11d3e16](https://github.com/TheJollyLaMa/DecentMarket/commit/11d3e16961ca8f32475b62e5db25ac0d243e8822),
+`contracts/LivePerformanceEscrow.sol`. The marketplace deployment at
+`0x31b07b83e99A9bdF379bf40225b8A80d3804C89d` exists on Base and answers its
+documented interface, but holds sale proceeds rather than enforcing DCal's
+per-booking refund policy. The work-order model lacks native ETH and DCal's
+fee/time rules; the performance model uses USDC-only admin approval,
+performer auto-claim and optional kill fees. These cannot become DCal's
+buyer-controlled, no-admin policy through a UI wrapper.
+
+Choice: retain the focused `DCalBooking` candidate as the booking member
+of the escrow family, with a separate deployment if approved. Reuse shared
+custody/state-transition patterns, not the existing storefront treasury.
+No donor source was copied in this slice and no dirty donor worktree was
+changed. Keep it with its established Calendar consumer rather than
+extracting speculative shared infrastructure. Receiving-app results:
+18 local-EVM tests, desktop/mobile real-EVM browser lifecycle, and a real
+canonical-USDC Base-fork lifecycle passed. This is not a tested integration
+with the existing deployed storefront, nor an independent contract review.
+
 ### Run and validate
 
 Serve `decent-calendar-vanilla/` over HTTP(S), including at nested paths; do
@@ -92,33 +128,44 @@ is disabled and its CDN bundle is no longer loaded.
 ```sh
 npm test
 npm run test:escrow
+npm run test:base-fork
 # With an existing Playwright installation:
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
   node scripts/verify-head.mjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
   node scripts/verify-rabbit.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
+  node scripts/verify-booking.mjs
 ```
 
 The browser check starts its own loopback-only static server and tests
 nested-path desktop/mobile loading, wallet lifecycle and public/private
 storage boundaries without real funds, wallet signatures or uploads.
-Receiving-app result: 25 frontend Node tests and 10 local-EVM escrow tests
+Receiving-app result: 31 frontend Node tests and 18 local-EVM escrow tests
 passed; desktop (1440px), mobile
 (390px), reduced-motion and no-wallet browser acceptance passed. Wallet
 responses, upload responses and CID retrieval were synthetic test fixtures,
 not evidence of a live provider integration or mainnet deployment.
+The booking browser check uses an actual ephemeral EVM through the real
+adapter and DOM, with synthetic funded accounts and a mock USDC at the
+canonical address. The separate Base-fork check exercises real canonical
+USDC proxy/code/state on an in-process fork; it never signs on the upstream
+RPC. Its OP Isthmus simulation is token-integration evidence, not proof of
+current production gas pricing, finality or meeting reliability.
 The shared Head respects reduced motion; the existing animated Calendar
 background is not part of that accessibility guarantee.
 
 ### Remaining release gates
 
-External calendar bridges, deployed Base escrow and supported-asset checkout,
+External calendar bridges, deployed/reviewed Base escrow,
 authenticated Rabbit Hole meetings, hardline countdown/termination and
 production operation still require implementation/integration and release checks.
 The new candidate registry in `contracts/DCalBooking.sol` implements the
-approved buyer-protective economic policy and has local EVM coverage, but
-has not passed independent review or canonical-USDC Base-fork acceptance,
-been deployed, or been connected to checkout. The old market must not be used.
+approved buyer-protective economic policy. Checkout/recovery is connected
+and tested locally, including canonical-USDC Base-fork acceptance, but
+independent review, deployment and a steward-approved minimal production
+rehearsal remain. Cross-slot overlap/conflict prevention and a global
+discovery index are not implemented. The old market must not be used.
 The legacy meeting prototype is not authenticated booking access and is
 disabled on the published prototype. Event clicks cannot request media.
 Repository publication is a separate history/metadata review and explicit

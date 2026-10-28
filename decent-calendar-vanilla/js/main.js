@@ -3,6 +3,7 @@ import { bindCalendarSession } from './head-session.js';
 import { installProfiles } from './profile-ui.js';
 import { installTutorial } from './tutorial.js';
 import { installSlotUI } from './slot-ui.js';
+import { installBookingUI } from './booking-ui.js';
 import './components/Calendar.js';
 
 const report = message => { document.getElementById('calendar-status').textContent = message; };
@@ -23,6 +24,7 @@ const identity = installProfiles(DecentHead);
 window.DCalProfiles = identity.profiles;
 installSlotUI(identity);
 installTutorial();
+installBookingUI();
 bindCalendarSession(DecentHead, {
   connected: () => {
     loadAndRenderMyEvents();
