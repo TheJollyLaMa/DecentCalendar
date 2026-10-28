@@ -40,7 +40,7 @@ async function saveEvent(address, event) {
   const eventToSave = {
     version: '0.1',
     type: 'timeslot',
-    tokenId: event.tokenId || null,
+    tokenId: event.tokenId ?? null,
     owner: address,
     title: event.title || 'Untitled',
     description: event.description || '',
@@ -50,7 +50,7 @@ async function saveEvent(address, event) {
     timezone: event.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     durationMinutes: event.durationMinutes || 0,
     hourlyRate: parseFloat(event.hourlyRate) || 0,
-    currency: event.currency || 'POL',
+    currency: event.currency || 'ETH',
     status: event.status || 'available',
     meetingRoomId: event.meetingRoomId || `meeting-${Date.now()}-${address}`,
     fiatOptions: event.fiatOptions || { paypal: true, card: true, fiatRateUSD: 0 },
@@ -64,12 +64,7 @@ async function saveEvent(address, event) {
     ipfsCID: event.ipfsCID || null,
   };
 
-  // Upload public events to IPFS
-  if (eventToSave.isPublic) {
-    const cid = await uploadToIPFS(eventToSave);
-    if (cid) eventToSave.ipfsCID = cid;
-  }
-
+  // Publication is a separate preview-and-consent action in calendar-storage.js.
   events.push(eventToSave);
   localStorage.setItem(key, JSON.stringify(events));
   console.log(`Saved event for ${key}:`, eventToSave);
@@ -81,11 +76,11 @@ async function saveEvent(address, event) {
  */
 function loadEventsRaw(address) {
   const key = address.toLowerCase();
-  try {
-    return JSON.parse(localStorage.getItem(key)) || [];
-  } catch {
-    return [];
-  }
+  const raw = localStorage.getItem(key);
+  if (raw === null) return [];
+  const events = JSON.parse(raw);
+  if (!Array.isArray(events)) throw new Error('Stored calendar is not an event array. Export the original data before attempting recovery.');
+  return events;
 }
 
 /**

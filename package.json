@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "test": "node --test tests/*.test.js",
     "start": "npx http-server decent-calendar-vanilla -p 8080 -o --cors",
     "serve:vanilla": "npx http-server decent-calendar-vanilla -p 8080 --cors",
     "serve:react": "cd decent-calendar-react-app && npm start"

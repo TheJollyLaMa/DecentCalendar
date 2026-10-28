@@ -17,35 +17,8 @@ function getPendingBookingEvent() {
  * @param {number} totalCostPOL - total cost in POL (as a float)
  */
 async function payWithCrypto(tokenId, totalCostPOL) {
-  if (!window._walletSigner) {
-    alert('Please connect your wallet first.');
-    return;
-  }
-
-  if (!CONTRACT_ADDRESSES.TimeslotMarket) {
-    // Fallback: direct ETH transfer to creator (legacy behavior — no escrow)
-    const event = getPendingBookingEvent();
-    if (!event || !event.creator) {
-      alert('Cannot determine payment recipient.');
-      return;
-    }
-    try {
-      const valueWei = ethers.parseEther(totalCostPOL.toString());
-      const tx = await window._walletSigner.sendTransaction({
-        to: event.creator,
-        value: valueWei,
-      });
-      console.log('Direct payment tx:', tx.hash);
-      await tx.wait();
-      alert('Payment sent directly to creator! (No escrow — contract not deployed)');
-    } catch (err) {
-      console.error('Direct payment failed:', err);
-      alert('Payment failed: ' + (err.reason || err.message));
-    }
-    return;
-  }
-
   try {
+    getMarketContract();
     const valueWei = ethers.parseEther(totalCostPOL.toString());
     await bookTimeslot(tokenId, valueWei);
     alert('Booking confirmed on-chain! Funds held in escrow until appointment is confirmed.');
@@ -61,6 +34,10 @@ async function payWithCrypto(tokenId, totalCostPOL) {
  * @param {object} eventData - the event being booked
  */
 async function payWithPayPal(eventData) {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+    alert(CALENDAR_RELEASE_MESSAGE);
+    return;
+  }
   // Sanitize PayPal client ID — only allow alphanumeric, hyphens, underscores
   const rawClientId = localStorage.getItem('paypal_client_id') || '';
   const paypalClientId = /^[A-Za-z0-9_-]+$/.test(rawClientId) ? rawClientId : '';
@@ -105,6 +82,10 @@ async function payWithPayPal(eventData) {
  * Pay with Card — placeholder for Stripe integration.
  */
 async function payWithCard(eventData) {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+    alert(CALENDAR_RELEASE_MESSAGE);
+    return;
+  }
   alert('Card payments coming soon! (Stripe integration in progress)');
 }
 

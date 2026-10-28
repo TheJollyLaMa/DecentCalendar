@@ -1,10 +1,9 @@
 /* contract.js — ethers.js v6 contract interactions */
 
-// Fill these after deploying contracts to Polygon
-const CONTRACT_ADDRESSES = {
-  TimeslotNFT: '',     // e.g. '0x...'
-  TimeslotMarket: '',  // e.g. '0x...'
-};
+// This integration is not a mainnet checkout or contract deployment.
+const CALENDAR_PAID_ACTIONS_ENABLED = false;
+const CALENDAR_RELEASE_MESSAGE = 'Paid bookings and minting are not live. Base escrow, supported assets and settlement terms must pass the release gates first. No payment was requested.';
+const CONTRACT_ADDRESSES = window.DECENT_CONFIG.contractAddresses;
 
 // ABIs — fill with full ABI arrays after compiling contracts
 const TIMESLOT_NFT_ABI = [
@@ -27,12 +26,14 @@ const TIMESLOT_MARKET_ABI = [
 ];
 
 function getNFTContract() {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) throw new Error(CALENDAR_RELEASE_MESSAGE);
   if (!window._walletSigner) throw new Error('Wallet not connected');
   if (!CONTRACT_ADDRESSES.TimeslotNFT) throw new Error('TimeslotNFT address not configured');
   return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotNFT, TIMESLOT_NFT_ABI, window._walletSigner);
 }
 
 function getMarketContract() {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) throw new Error(CALENDAR_RELEASE_MESSAGE);
   if (!window._walletSigner) throw new Error('Wallet not connected');
   if (!CONTRACT_ADDRESSES.TimeslotMarket) throw new Error('TimeslotMarket address not configured');
   return new ethers.Contract(CONTRACT_ADDRESSES.TimeslotMarket, TIMESLOT_MARKET_ABI, window._walletSigner);

@@ -17,6 +17,23 @@
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
+@media (max-width: 600px) {
+  .fc .fc-header-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .fc .fc-toolbar-title { font-size: 1.25rem; }
+  .fc .fc-col-header-cell { font-size: 0.7rem; }
+  .modal-content {
+    box-sizing: border-box;
+    min-width: 0;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+    padding: 20px;
+  }
+}
+
 /* FullCalendar overrides */
 .fc .fc-toolbar-title {
   color: #fff;

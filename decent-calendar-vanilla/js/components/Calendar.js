@@ -19,7 +19,7 @@ class DecentCalendar extends HTMLElement {
           </div>
           <div id="calendar-toggle"></div>
           <button id="add-event-btn" class="add-event-button" title="Add Event">+</button>
-          <button id="mint-timeslot-btn" class="mint-button" title="Mint Timeslot NFT">⛏️ Mint Timeslot</button>
+          <button id="mint-timeslot-btn" class="mint-button" disabled title="Unavailable until the Base escrow release is validated">Minting not live</button>
         </div>
         <div id="calendar-wrapper">
           <div id="calendar"></div>
@@ -29,69 +29,9 @@ class DecentCalendar extends HTMLElement {
 
     // All helper scripts (calendar.js, events.js, etc.) are loaded as globals before
     // this module runs (modules are deferred), so globals are available here.
-    this._defineHooks();
     this._wireModalListeners();
     initCalendar();
     refreshCalendarToggle();
-  }
-
-  // ---- Global Hook Definitions ----
-
-  _defineHooks() {
-    window.onWalletConnected = (address) => {
-      loadAndRenderMyEvents();
-      this._checkPendingBookings();
-    };
-
-    window.onWalletDisconnected = () => {
-      clearCalendarEvents();
-    };
-
-    window.onIPFSUploadClick = async () => {
-      if (!window._walletAddress) {
-        alert('Connect your wallet first.');
-        return;
-      }
-      if (!window.w3upClient) {
-        alert('Connect to IPFS first (click the IPFS icon).');
-        return;
-      }
-      const events = loadMyEvents(window._walletAddress);
-      const data = {
-        address: window._walletAddress,
-        events,
-        exportedAt: new Date().toISOString(),
-      };
-      const { uploadDataToIPFS } = await import('../helpers/ipfs/uploadToIPFS.js');
-      const cid = await uploadDataToIPFS(data, window.w3upClient);
-      if (cid) {
-        alert(`✅ Calendar saved to IPFS!\nCID: ${cid}`);
-        console.log('Calendar CID:', cid);
-      } else {
-        alert('IPFS upload failed. Check the console for details.');
-      }
-    };
-
-    window.onIPFSImportCID = async (cid) => {
-      try {
-        const url = `https://w3s.link/ipfs/${cid}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-        const data = await res.json();
-        if (data.events && Array.isArray(data.events)) {
-          setOtherEvents(data.events.map(e => ({ ...e, classNames: ['imported-event'] })));
-          setCurrentLookupAddress(data.address || cid);
-          refreshCalendarToggle();
-          refreshCalendar();
-          alert(`✅ Imported ${data.events.length} events from CID`);
-        } else {
-          alert('No events found in that CID.');
-        }
-      } catch (err) {
-        console.error('CID import error:', err);
-        alert('Failed to import from CID: ' + err.message);
-      }
-    };
   }
 
   // ---- Modal Event Listeners ----
@@ -174,6 +114,7 @@ class DecentCalendar extends HTMLElement {
       start,
       end,
       hourlyRate,
+      currency: 'ETH',
       isPublic,
       classNames,
       meetingRoomId,
@@ -194,6 +135,10 @@ class DecentCalendar extends HTMLElement {
   // ---- Mint Timeslot ----
 
   _openMintModal() {
+    if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+      alert(CALENDAR_RELEASE_MESSAGE);
+      return;
+    }
     if (!window._walletAddress) {
       alert('Please connect your wallet first.');
       return;
@@ -206,6 +151,10 @@ class DecentCalendar extends HTMLElement {
   }
 
   async _handleMintTimeslot() {
+    if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+      alert(CALENDAR_RELEASE_MESSAGE);
+      return;
+    }
     const title = document.getElementById('mint-title').value.trim();
     const date = document.getElementById('mint-date').value;
     const startTime = document.getElementById('mint-start').value;

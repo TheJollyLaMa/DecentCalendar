@@ -4,21 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🗓️ Decent Calendar 🗓️</title>
-  <link rel="icon" type="image/png" href="assets/IPFS_Logo.png" />
+  <link rel="icon" type="image/png" href="vendor/decent-head/2.0.0/img/IPFS_Logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
-  <link rel="stylesheet" href="css/header.css" />
   <link rel="stylesheet" href="css/calendar.css" />
 </head>
 <body>
 
-  <!-- w3up browser bundle — must load before ES module components -->
-  <script src="https://bafybeicqxq54ncvkxvwdbov6ljgtyyrcpmek3ic2fxrwwsigmh4ud4s2mu.ipfs.w3s.link/browser.min.js"></script>
-
-  <!-- Web Component Header: <ipfs-status> | <app-title> | <wallet-connect> -->
-  <app-header></app-header>
+  <decent-header></decent-header>
+  <p id="calendar-status" role="status">Local prototype. Paid bookings and video meetings are not live.</p>
 
   <!-- Main Calendar Web Component (light DOM — FullCalendar needs real DOM) -->
   <decent-calendar></decent-calendar>
@@ -31,6 +27,34 @@
     <img src="assets/Ommm_Token_Logo.png" alt="Ommm Token" class="icon-small" />
     <img src="assets/DecentSmartHome_Logo.png" alt="DecentSmartHome" class="icon-small" />
   </footer>
+
+  <dialog id="local-backup-dialog" aria-labelledby="local-backup-title">
+    <button type="button" data-close aria-label="Close local backups">Close</button>
+    <h2 id="local-backup-title">Local calendar backups</h2>
+    <p>Download only this wallet's calendar. The JSON file can contain private events and meeting IDs. Keep it safe and offline. Nothing here uploads to IPFS.</p>
+    <button type="button" id="download-local-backup">Download local JSON</button>
+    <label>Restore local JSON (maximum 2 MiB)
+      <input id="local-backup-file" type="file" accept=".json,application/json" />
+    </label>
+    <p>Restore replaces this wallet's local calendar after validation and confirmation. Download your current backup first.</p>
+    <button type="button" id="restore-local-backup">Validate and restore local backup</button>
+    <p id="local-backup-message" role="status"></p>
+  </dialog>
+
+  <dialog id="public-availability-dialog" aria-labelledby="public-availability-title">
+    <button type="button" data-close aria-label="Close public availability">Close</button>
+    <h2 id="public-availability-title">Public availability</h2>
+    <p>Only explicitly public events are included. Meeting IDs, private events, booking state and other browser data are excluded. Review titles and descriptions for private information before publishing.</p>
+    <p>Set your own provider in the Head's Storage provider controls first. A CID is not automatic wallet discovery or proof of permanent retention.</p>
+    <pre id="public-preview" aria-label="Public availability preview"></pre>
+    <label><input id="public-availability-consent" type="checkbox" /> I intend this preview for public distribution. IPFS copies may remain forever.</label>
+    <button type="button" id="publish-availability">Publish preview to IPFS</button>
+    <hr />
+    <label>Public availability CID <input id="public-availability-cid" autocomplete="off" /></label>
+    <button type="button" id="import-availability">Display read-only availability</button>
+    <p>Import displays availability only. It never restores your local calendar or grants meeting access. Calendar-feed import is a separate planned feature.</p>
+    <p id="public-availability-message" role="status"></p>
+  </dialog>
 
   <!-- Add Event Modal -->
   <div id="add-event-modal" class="modal hidden">
@@ -49,7 +73,7 @@
         <input type="datetime-local" id="event-end" name="end" />
       </label>
       <label>
-        Hourly Rate (POL):
+        Hourly Rate (ETH, preview only):
         <input type="number" id="event-rate" name="hourlyRate" step="0.001" min="0" placeholder="0.05" />
       </label>
       <div class="checkbox-group">
@@ -89,7 +113,7 @@
         <input type="time" id="mint-end" />
       </label>
       <label>
-        Hourly Rate (POL):
+        Hourly Rate (ETH, preview only):
         <input type="number" id="mint-rate" step="0.001" min="0" placeholder="0.05" />
       </label>
       <label>
@@ -143,11 +167,7 @@
     src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
     crossorigin="anonymous"></script>
   <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"
-    crossorigin="anonymous"></script>
-  <script
-    src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
-    crossorigin="anonymous"></script>
+    src="vendor/decent-head/2.0.0/js/vendor/ethers.umd.min.js"></script>
 
   <!-- App Config (loaded before helpers so DECENT_CONFIG is available) -->
   <script src="decent.config.js"></script>

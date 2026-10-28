@@ -24,7 +24,7 @@ body::before {
   z-index: -1;
 }
 
-/* App Container — margin-top accounts for fixed <app-header> height (~136px) */
+/* The canonical Head occupies normal document flow. */
 #main-content {
   text-align: center;
   min-height: 80vh;
@@ -32,8 +32,35 @@ body::before {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  margin-top: 140px;
+  margin-top: 0;
 }
+
+#calendar-status {
+  padding: 12px 20px;
+  margin: 0;
+  text-align: center;
+  background: #080e1a;
+  font: 14px/1.5 system-ui, sans-serif;
+}
+
+dialog {
+  box-sizing: border-box;
+  width: min(42rem, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  background: #080e1a;
+  color: white;
+  border: 1px solid #0ff;
+  font: 16px/1.5 system-ui, sans-serif;
+}
+
+dialog::backdrop { background: #000b; }
+dialog label { display: block; margin: 12px 0; }
+dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 16rem; overflow: auto; }
+dialog input:not([type="checkbox"]) { max-width: 100%; box-sizing: border-box; }
+dialog [data-close] { float: right; position: sticky; top: 0; }
+button:focus-visible, input:focus-visible { outline: 3px solid #0ff; outline-offset: 3px; }
 
 /* ---- Header ---- */
 #decent-head {
@@ -139,6 +166,8 @@ body::before {
 
 .address-input {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   justify-content: center;
   align-items: center;
   gap: 10px;
@@ -146,6 +175,8 @@ body::before {
 }
 
 .address-input input {
+  box-sizing: border-box;
+  max-width: 100%;
   padding: 10px;
   font-size: 1rem;
   border: 2px solid #0ff;

@@ -1,6 +1,8 @@
 /* meetingRoom.js — PeerJS video meeting room (vanilla JS port of MeetingRoom.js) */
 
 let peerInstance = null;
+const CALENDAR_MEETINGS_ENABLED = false;
+const CALENDAR_MEETING_MESSAGE = 'Meetings are not live. Booking-bound authentication and explicit media consent must be implemented before public calls are enabled. No camera or microphone was requested.';
 
 /**
  * Initialize a PeerJS meeting room.
@@ -10,6 +12,10 @@ let peerInstance = null;
  * @param {boolean} isHost - true if the current user is the calendar owner
  */
 function initMeetingRoom(roomId, isHost) {
+  if (!CALENDAR_MEETINGS_ENABLED) {
+    alert(CALENDAR_MEETING_MESSAGE);
+    return;
+  }
   const video = document.getElementById('meeting-video');
   const controls = document.getElementById('meeting-controls');
 
@@ -103,6 +109,10 @@ function initMeetingRoom(roomId, isHost) {
  * @param {HTMLVideoElement} video
  */
 function startCall(roomId, video) {
+  if (!CALENDAR_MEETINGS_ENABLED) {
+    alert(CALENDAR_MEETING_MESSAGE);
+    return;
+  }
   navigator.mediaDevices
     .getUserMedia({ video: true, audio: true })
     .then((stream) => {

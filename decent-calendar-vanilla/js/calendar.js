@@ -23,12 +23,12 @@ function initCalendar() {
       right: 'dayGridMonth,timeGridWeek,timeGridDay',
     },
     slotDuration: '00:15:00',
-    events: getVisibleEvents,
+    events: getVisibleEvents(),
     eventClick: handleEventClick,
     eventClassNames: (info) => info.event.classNames || [],
     eventDataTransform: (eventData) => ({
       ...eventData,
-      title: `${eventData.title} (${eventData.hourlyRate || 0} POL/hr)`,
+      title: `${eventData.title} (${eventData.hourlyRate || 0} ${eventData.currency || 'POL'}/hr)`,
       backgroundColor: eventData.backgroundColor || undefined,
       borderColor: eventData.borderColor || undefined,
       classNames: eventData.classNames || ['public-event'],
@@ -52,7 +52,7 @@ function getVisibleEvents() {
 /**
  * Reload events from localStorage for the connected wallet and refresh.
  */
-async function loadAndRenderMyEvents() {
+function loadAndRenderMyEvents() {
   if (!window._walletAddress) return;
   myEvents = loadMyEvents(window._walletAddress);
   refreshCalendarToggle();
@@ -72,7 +72,8 @@ function addEventToCalendar(eventObj) {
  */
 function refreshCalendar() {
   if (calendarInstance) {
-    calendarInstance.refetchEvents();
+    calendarInstance.removeAllEventSources();
+    calendarInstance.addEventSource(getVisibleEvents());
   }
 }
 
@@ -114,6 +115,10 @@ function handleEventClick(info) {
   const props = fcEvent.extendedProps;
   const classNames = fcEvent.classNames || props.classNames || [];
 
+  if (props.readOnly) {
+    alert(`Read-only public availability: ${fcEvent.title}\nThis is not a verified booking or meeting invitation.`);
+    return;
+  }
   console.log('Clicked event:', fcEvent.title, props);
 
   const isOwner =
@@ -161,6 +166,10 @@ function handleEventClick(info) {
  * Open the booking modal for a public event.
  */
 function openBookingModal(fcEvent, totalCost) {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+    alert(CALENDAR_RELEASE_MESSAGE);
+    return;
+  }
   const props = fcEvent.extendedProps;
   const title = fcEvent.title.split(' (')[0];
   const start = fcEvent.start ? fcEvent.start.toLocaleString() : '';
@@ -199,6 +208,10 @@ function closeBookingModal() {
  * Open the confirm-appointment modal (owner confirming a pending booking).
  */
 function openConfirmModal(fcEvent) {
+  if (!CALENDAR_PAID_ACTIONS_ENABLED) {
+    alert(CALENDAR_RELEASE_MESSAGE);
+    return;
+  }
   const props = fcEvent.extendedProps;
   const title = fcEvent.title.split(' (')[0];
   document.getElementById('confirm-details').innerHTML = `
@@ -243,6 +256,10 @@ function openConfirmModal(fcEvent) {
  * Open the meeting room modal.
  */
 function openMeetingModal(roomId, isHost) {
+  if (!CALENDAR_MEETINGS_ENABLED) {
+    alert(CALENDAR_MEETING_MESSAGE);
+    return;
+  }
   document.getElementById('meeting-modal').classList.remove('hidden');
   initMeetingRoom(roomId, isHost);
 }
