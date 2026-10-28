@@ -9,6 +9,20 @@ service**: minting, checkout, fiat payment, settlement and video meetings remain
 until the Base release gates are implemented and validated. No contracts
 were deployed by this integration.
 
+- **Follow the white rabbit**: an eleven-hop, replayable tutorial below the
+  header and in the right ankh. It remembers your place and supports
+  keyboard navigation, Escape, reduced motion and explicit storage errors.
+  It never connects, signs, pays, uploads or requests media.
+- **My ENS profile** in the right ankh shows forward-verified primary name,
+  avatar and banner/header records. ENS identity enriches the calendar and
+  slot details; failed/missing records retain the wallet address. HTTPS/IPFS
+  images are display-only and use no-referrer requests. No Discord is used.
+- **Asset-aware drafts and slot previews** use an exact decimal hourly
+  rate and chain/address identity for native Base ETH or canonical Base
+  USDC. Asset icons appear in the picker, slot and agreement preview;
+  unrelated Ommm/SmartHome decorations are removed. ETH animation has a
+  reduced-motion still. No imported image or currency symbol can authorize
+  payment. Gross rounds up and the 300 bps fee rounds down in base units.
 - One canonical DecentHead 2.0.0 session: EIP-6963/injected-wallet discovery,
   explicit connect/disconnect, Base mainnet (8453), verified ENS display,
   orbit styling, storage-provider controls and a DCal About modal.
@@ -52,28 +66,44 @@ PRs were checked before implementation. Existing Head Supporter work is not
 part of this integration. The old Calendar w3up email flow and separate
 wallet globals are incompatible with the current shared-session contract;
 the host adapter replaces that runtime path while temporarily bridging
-the app's existing address/signer consumers. Admin/Profile menus remain
-inert Head placeholders, not privileges.
+the app's existing address/signer consumers. DCal wires the right ankh's
+existing button to its ENS profile and adds tutorial replay without changing
+the vendored Head. The left Admin menu is still an inert placeholder.
+
+Onboarding/profile/icon donor:
+[DecentBusking 6ef53c8](https://github.com/TheJollyLaMa/DecentBusking/commit/6ef53c84ff48b8ae21d18bd50b337c22644cae53),
+`js/tutorial.js`, `js/creator-profile-data.mjs` (`resolveCreatorENS`,
+`creatorImageURL`), `js/components/header-right-ankh-override.js` and
+`img/usdc.svg`. These were adapted, not wholesale copied: Busking's tutorial
+depends on radio/playlist panels and its ENS worker is not DCal infrastructure.
+The host uses the current Head v2 ankh structure, direct Ethereum RPC and
+explicit lookup/error states rather than a silent worker fallback. The donor
+worktree's unfinished changes were not copied. Attribution and the donor
+NOTICE are retained.
 
 ### Run and validate
 
 Serve `decent-calendar-vanilla/` over HTTP(S), including at nested paths; do
 not open the HTML using `file:`. The existing `npm run serve:vanilla` serves
-port 8080. Head dependencies are vendored; FullCalendar and PeerJS still
-use a CDN dependency for FullCalendar. The unauthenticated PeerJS runtime
+port 8080. Head dependencies are vendored; FullCalendar still uses its
+versioned CDN dependency. The unauthenticated PeerJS runtime
 is disabled and its CDN bundle is no longer loaded.
 
 ```sh
 npm test
+npm run test:escrow
 # With an existing Playwright installation:
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
   node scripts/verify-head.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
+  node scripts/verify-rabbit.mjs
 ```
 
 The browser check starts its own loopback-only static server and tests
 nested-path desktop/mobile loading, wallet lifecycle and public/private
 storage boundaries without real funds, wallet signatures or uploads.
-Receiving-app result: 18 Node tests passed; desktop (1440px), mobile
+Receiving-app result: 25 frontend Node tests and 10 local-EVM escrow tests
+passed; desktop (1440px), mobile
 (390px), reduced-motion and no-wallet browser acceptance passed. Wallet
 responses, upload responses and CID retrieval were synthetic test fixtures,
 not evidence of a live provider integration or mainnet deployment.
@@ -82,13 +112,24 @@ background is not part of that accessibility guarantee.
 
 ### Remaining release gates
 
-The White Rabbit tutorial, external calendar bridges, Base escrow and
-exact-amount supported-asset checkout, authenticated Rabbit Hole meetings,
-hardline countdown/termination and production operation are still planned.
+External calendar bridges, deployed Base escrow and supported-asset checkout,
+authenticated Rabbit Hole meetings, hardline countdown/termination and
+production operation still require implementation/integration and release checks.
+The new candidate registry in `contracts/DCalBooking.sol` implements the
+approved buyer-protective economic policy and has local EVM coverage, but
+has not passed independent review or canonical-USDC Base-fork acceptance,
+been deployed, or been connected to checkout. The old market must not be used.
 The legacy meeting prototype is not authenticated booking access and is
 disabled on the published prototype. Event clicks cannot request media.
 Repository publication is a separate history/metadata review and explicit
 approval step; source visibility does not authorize publishing user data.
+
+See [Launch sequence and operator decisions](docs/LAUNCH.md) for the approved
+fee ENS recipient, exact settlement/refund policy, what the steward will sign,
+and which remaining checks must pass before any wallet deployment.
+Local contract tooling is development-only, never shipped in the Pages
+artifact. Package audit advisories must not be confused with a tested
+mainnet contract review; no blanket force-upgrade is used.
 
 ### GitHub Pages deployment
 

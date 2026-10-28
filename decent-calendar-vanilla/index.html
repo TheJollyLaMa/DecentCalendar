@@ -15,18 +15,58 @@
 
   <decent-header></decent-header>
   <p id="calendar-status" role="status">Local prototype. Paid bookings and video meetings are not live.</p>
+  <nav class="onboarding-bar" aria-label="Getting started">
+    <button id="rabbit-tour-launch" type="button"><span class="rabbit-glyph" aria-hidden="true">&#128007;</span> Follow the white rabbit <small>Learn DCal - no wallet needed</small></button>
+    <a href="#release-readiness">Launch readiness</a>
+  </nav>
 
   <!-- Main Calendar Web Component (light DOM — FullCalendar needs real DOM) -->
   <decent-calendar></decent-calendar>
 
   <!-- Footer -->
   <footer class="App-footer">
-    <img src="assets/DecentSmartHome_Logo.png" alt="DecentSmartHome" class="icon-small" />
-    <img src="assets/Ommm_Token_Logo.png" alt="Ommm Token" class="icon-small" />
     <p>Another creation by A Decent Agency to help the world be on the same page.</p>
-    <img src="assets/Ommm_Token_Logo.png" alt="Ommm Token" class="icon-small" />
-    <img src="assets/DecentSmartHome_Logo.png" alt="DecentSmartHome" class="icon-small" />
   </footer>
+
+  <section id="release-readiness" aria-labelledby="readiness-title">
+    <h2 id="readiness-title">The trail to live bookings</h2>
+    <p>Available now: local drafts, ENS profile and artwork, exact ETH/USDC agreement previews, backups and deliberate public availability.</p>
+    <p>Before taking payment: deploy and verify the new Base escrow, resolve and confirm DecentAgency.eth's fee address, test canonical USDC on a Base fork and complete an independent contract review. No wallet address is inferred from artwork or a display name.</p>
+    <p>Before live calls: test booking-bound wallet challenges, waiting-room admission, media consent and the optional five-minute hardline countdown. App-enforced P2P ending is not server-enforced room expiry.</p>
+    <p>Agreed v1 policy: nontransferable records, full refunds before the start, buyer-authorized release after the end or host-authorized full refund, buyer refund after seven unresolved days, no admin dispute power. A call ending never releases money automatically.</p>
+    <a href="https://github.com/TheJollyLaMa/DecentCalendar/issues/22" target="_blank" rel="noopener noreferrer">Track the release plan</a>
+  </section>
+
+  <dialog id="rabbit-tour" aria-labelledby="rabbit-title" aria-describedby="rabbit-body">
+    <button type="button" data-close aria-label="Save and close tutorial">Close / resume later</button>
+    <p class="rabbit-step"><span aria-hidden="true">&#128007;</span> <span id="rabbit-progress"></span></p>
+    <h2 id="rabbit-title" tabindex="-1"></h2>
+    <p id="rabbit-body"></p>
+    <p id="rabbit-status" role="status"></p>
+    <div class="rabbit-actions">
+      <button id="rabbit-back" type="button">Back</button>
+      <button id="rabbit-next" type="button">Next hop</button>
+      <button id="rabbit-restart" type="button">Restart trail</button>
+    </div>
+    <p class="quiet">Arrow keys navigate. Escape saves your place and closes. No wallet, uploads, payments or media requests are triggered.</p>
+  </dialog>
+
+  <dialog id="ens-profile-dialog" aria-labelledby="ens-profile-title">
+    <button type="button" data-close aria-label="Close ENS profile">Close</button>
+    <h2 id="ens-profile-title">My ENS profile</h2>
+    <div id="ens-profile-content"></div>
+    <p id="ens-profile-status" role="status"></p>
+    <button id="refresh-ens-profile" type="button">Refresh ENS records</button>
+    <p>Set your primary name, avatar and banner/header records in your ENS manager on Ethereum. DCal only reads them. Images and names are mutable display data, never booking rights or payout instructions.</p>
+    <a href="https://app.ens.domains/" target="_blank" rel="noopener noreferrer">Open ENS manager</a>
+  </dialog>
+
+  <dialog id="slot-details" aria-labelledby="slot-details-title">
+    <button type="button" data-close aria-label="Close slot details">Close</button>
+    <h2 id="slot-details-title"></h2>
+    <div id="slot-details-content"></div>
+    <p id="slot-details-status" role="status"></p>
+  </dialog>
 
   <dialog id="local-backup-dialog" aria-labelledby="local-backup-title">
     <button type="button" data-close aria-label="Close local backups">Close</button>
@@ -73,8 +113,12 @@
         <input type="datetime-local" id="event-end" name="end" />
       </label>
       <label>
-        Hourly Rate (ETH, preview only):
-        <input type="number" id="event-rate" name="hourlyRate" step="0.001" min="0" placeholder="0.05" />
+        Slot currency (Base, preview only):
+        <select id="event-asset" name="asset"></select><span id="event-asset-icon"></span>
+      </label>
+      <label>
+        Hourly rate (exact decimal, preview only):
+        <input type="text" inputmode="decimal" id="event-rate" name="hourlyRate" placeholder="0.05" />
       </label>
       <div class="checkbox-group">
         <label>

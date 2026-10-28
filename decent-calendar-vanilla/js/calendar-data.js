@@ -1,3 +1,5 @@
+import { getAsset, parseAmount } from './assets.js';
+
 export const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
 const MAX_EVENTS = 2000;
 const ADDRESS = /^0x[0-9a-f]{40}$/i;
@@ -33,6 +35,13 @@ function eventsForOwner(events, owner) {
       isPublic: event.isPublic,
       classNames: [event.isPublic ? 'public-event' : 'private-event'],
     };
+    if (event.assetId !== undefined) {
+      const asset = getAsset(event.assetId);
+      parseAmount(event.rateAmount, asset.decimals);
+      if (event.currency !== asset.symbol) throw new Error('Currency does not match the identified asset.');
+      result.assetId = asset.id;
+      result.rateAmount = event.rateAmount;
+    }
     for (const field of ['id', 'date', 'startTime', 'endTime', 'timezone', 'status', 'meetingRoomId', 'createdAt', 'ipfsCID', 'buyer', 'paypalOrderId']) {
       if (event[field] !== undefined && event[field] !== null) result[field] = text(event[field], 500, field);
     }
@@ -99,6 +108,7 @@ export function createPublicAvailability(storage, wallet) {
       version: '0.1', type: 'timeslot', owner: backup.owner, creator: backup.owner,
       title: event.title, description: event.description, start: event.start, end: event.end,
       hourlyRate: event.hourlyRate, currency: event.currency, isPublic: true,
+      ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
     })),
   };
 }
@@ -110,5 +120,6 @@ export function importPublicAvailability(document) {
     title: event.title, description: event.description, start: event.start, end: event.end,
     owner: valid.owner, creator: valid.owner, hourlyRate: event.hourlyRate,
     currency: event.currency, isPublic: true, classNames: ['imported-event'], readOnly: true,
+    ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
   })) };
 }

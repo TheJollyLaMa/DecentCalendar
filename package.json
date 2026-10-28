@@ -3,7 +3,13 @@
     "test": "node --test tests/*.test.js",
     "start": "npx http-server decent-calendar-vanilla -p 8080 -o --cors",
     "serve:vanilla": "npx http-server decent-calendar-vanilla -p 8080 --cors",
-    "serve:react": "cd decent-calendar-react-app && npm start"
+    "serve:react": "cd decent-calendar-react-app && npm start",
+    "test:escrow": "node --test tests/escrow.test.mjs"
+  },
+  "devDependencies": {
+    "ethers": "6.16.0",
+    "hardhat": "3.21.1",
+    "solc": "0.8.30"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",

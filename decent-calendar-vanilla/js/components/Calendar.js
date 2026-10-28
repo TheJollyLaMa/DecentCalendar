@@ -3,6 +3,8 @@
    Defines window.on* hooks and wires all modal event listeners.
    Delegates to calendar.js global functions for FullCalendar logic. */
 
+import { getAsset, parseAmount } from '../assets.js';
+
 class DecentCalendar extends HTMLElement {
   connectedCallback() {
     // Render into light DOM — FullCalendar requires access to real DOM nodes
@@ -13,14 +15,16 @@ class DecentCalendar extends HTMLElement {
             <input
               id="lookup-address"
               type="text"
-              placeholder="Enter wallet address to view their calendar"
+              placeholder="Wallet address or ENS name (local lookup)"
+              aria-label="Wallet address or ENS name"
             />
-            <button id="fetch-events-btn">Fetch Public Events</button>
+            <button id="fetch-events-btn">Look up local availability</button>
           </div>
           <div id="calendar-toggle"></div>
           <button id="add-event-btn" class="add-event-button" title="Add Event">+</button>
-          <button id="mint-timeslot-btn" class="mint-button" disabled title="Unavailable until the Base escrow release is validated">Minting not live</button>
+          <button id="mint-timeslot-btn" class="mint-button" disabled title="Unavailable until the Base escrow release is validated">Bookings not live</button>
         </div>
+        <section id="calendar-identity" aria-label="Calendar owner ENS identity"></section>
         <div id="calendar-wrapper">
           <div id="calendar"></div>
         </div>
@@ -81,6 +85,8 @@ class DecentCalendar extends HTMLElement {
     document.getElementById('event-start').value = '';
     document.getElementById('event-end').value = '';
     document.getElementById('event-rate').value = '';
+    document.getElementById('event-asset').value = 'base:eth';
+    document.getElementById('event-asset').dispatchEvent(new Event('change'));
     document.getElementById('event-public').checked = true;
     document.getElementById('event-private').checked = false;
     document.getElementById('add-event-modal').classList.remove('hidden');
@@ -94,7 +100,11 @@ class DecentCalendar extends HTMLElement {
     const title = document.getElementById('event-title').value.trim();
     const start = document.getElementById('event-start').value;
     const end = document.getElementById('event-end').value;
-    const hourlyRate = parseFloat(document.getElementById('event-rate').value) || 0;
+    const rateAmount = document.getElementById('event-rate').value.trim() || '0';
+    const asset = getAsset(document.getElementById('event-asset').value);
+    try { parseAmount(rateAmount, asset.decimals); }
+    catch (error) { alert(error.message); return; }
+    const hourlyRate = Number(rateAmount);
     const isPublic = document.getElementById('event-public').checked;
 
     if (!title || !start || !end) {
@@ -114,7 +124,9 @@ class DecentCalendar extends HTMLElement {
       start,
       end,
       hourlyRate,
-      currency: 'ETH',
+      rateAmount,
+      assetId: asset.id,
+      currency: asset.symbol,
       isPublic,
       classNames,
       meetingRoomId,
@@ -250,13 +262,14 @@ class DecentCalendar extends HTMLElement {
   // ---- Fetch Public Events ----
 
   async _handleFetchPublicEvents() {
-    const address = document.getElementById('lookup-address').value.trim();
-    if (!address) {
+    const input = document.getElementById('lookup-address').value.trim();
+    if (!input) {
       alert('Please enter a wallet address.');
       return;
     }
 
     try {
+      const address = await window.DCalProfiles.address(input);
       const color = generateColorForAddress(address);
       const events = await fetchPublicEventsForAddress(address);
 

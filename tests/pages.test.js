@@ -20,6 +20,7 @@ test('Pages includes the active app and notices, not repository files or retired
     for (const file of [
       '.git', '.github', 'tests', 'contracts', 'decent-calendar-react-app', 'package.json',
       'js/components/WalletConnect.js', 'js/helpers/ipfs/w3upClient.js',
+      'assets/Ommm_Token_Logo.png', 'assets/DecentSmartHome_Logo.png',
     ]) await assert.rejects(access(join(destination, file)), { code: 'ENOENT' });
     await assert.rejects(buildPages(destination), { code: 'EEXIST' });
   } finally {

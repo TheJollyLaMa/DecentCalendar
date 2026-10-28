@@ -98,7 +98,7 @@ try {
     await page.waitForFunction(owner => window._walletAddress === owner, owner);
     assert.equal(await page.evaluate(() => window._walletSigner !== null), true);
     await page.evaluate(() => calendarInstance.gotoDate('2026-11-02'));
-    await page.locator('.fc-event-title').filter({ hasText: 'Private secret title' }).first().waitFor();
+    await page.locator('.fc-event').filter({ hasText: 'Private secret title' }).first().waitFor();
     assert.equal(await page.locator('#mint-timeslot-btn').isDisabled(), true);
     const capabilities = async capability => {
       await page.locator('decent-header ipfs-controls #open').click();

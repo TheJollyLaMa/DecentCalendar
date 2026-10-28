@@ -50,6 +50,7 @@ async function saveEvent(address, event) {
     timezone: event.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     durationMinutes: event.durationMinutes || 0,
     hourlyRate: parseFloat(event.hourlyRate) || 0,
+    ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
     currency: event.currency || 'ETH',
     status: event.status || 'available',
     meetingRoomId: event.meetingRoomId || `meeting-${Date.now()}-${address}`,

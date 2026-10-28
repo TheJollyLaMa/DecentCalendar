@@ -25,10 +25,14 @@ function initCalendar() {
     slotDuration: '00:15:00',
     events: getVisibleEvents(),
     eventClick: handleEventClick,
+    eventContent: info => window.renderSlotContent
+      ? window.renderSlotContent(info)
+      : { text: `${info.timeText} ${info.event.title}` },
     eventClassNames: (info) => info.event.classNames || [],
     eventDataTransform: (eventData) => ({
       ...eventData,
-      title: `${eventData.title} (${eventData.hourlyRate || 0} ${eventData.currency || 'POL'}/hr)`,
+      originalTitle: eventData.title,
+      title: `${eventData.title} (${eventData.rateAmount ?? eventData.hourlyRate ?? 0} ${eventData.currency || 'POL'}/hr)`,
       backgroundColor: eventData.backgroundColor || undefined,
       borderColor: eventData.borderColor || undefined,
       classNames: eventData.classNames || ['public-event'],
@@ -115,6 +119,16 @@ function handleEventClick(info) {
   const props = fcEvent.extendedProps;
   const classNames = fcEvent.classNames || props.classNames || [];
 
+  if (window.openSlotDetails) {
+    void window.openSlotDetails({
+      ...props, title: props.originalTitle || fcEvent.title,
+      start: fcEvent.start?.toISOString(), end: fcEvent.end?.toISOString(),
+    }).catch(error => {
+      console.error('[DCal slot]', error);
+      alert(`Could not open slot: ${error.message}`);
+    });
+    return;
+  }
   if (props.readOnly) {
     alert(`Read-only public availability: ${fcEvent.title}\nThis is not a verified booking or meeting invitation.`);
     return;
@@ -279,22 +293,12 @@ function refreshCalendarToggle() {
       <input type="checkbox" id="my-events-toggle" ${myEventsVisible ? 'checked' : ''} />
       Your Calendar:
       <span class="calendar-shower-wallet-addr">${addr.slice(0, 6)}</span>
-      <span class="wallet-icons">
-        <img src="assets/DecentSmartHome_Logo.png" alt="" class="icon-small" />
-        <img src="assets/Ommm_Token_Logo.png" alt="" class="icon-small" />
-        <img src="assets/DecentSmartHome_Logo.png" alt="" class="icon-small" />
-      </span>
       <span class="calendar-shower-wallet-addr">${addr.slice(-4)}</span>
     </label>
     <label style="color:#FF6347;">
       <input type="checkbox" id="other-events-toggle" ${otherEventsVisible ? 'checked' : ''} />
       Imported Calendar:
       <span class="calendar-shower-wallet-addr">${lookupAddr.slice(0, 6)}</span>
-      <span class="wallet-icons">
-        <img src="assets/Metamask_Logo.png" alt="" class="icon-small" />
-        <img src="assets/DecentSmartHome_Logo.png" alt="" class="icon-small" />
-        <img src="assets/Ommm_Token_Logo.png" alt="" class="icon-small" />
-      </span>
       <span class="calendar-shower-wallet-addr">${lookupAddr.slice(-4)}</span>
     </label>
   `;
