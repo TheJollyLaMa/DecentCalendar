@@ -23,19 +23,29 @@ were deployed by this integration.
   unrelated Ommm/SmartHome decorations are removed. ETH animation has a
   reduced-motion still. No imported image or currency symbol can authorize
   payment. Gross rounds up and the 300 bps fee rounds down in base units.
-- **Booking registry integration (release-gated)** publishes public offers
-  from owned drafts, reads immutable UTC/asset/price/hardline terms, separates
-  exact USDC approval from booking, and reconciles confirmed receipts.
-  Buyer settlement, policy-authorized refunds, offer withdrawal and ETH/USDC
-  credit withdrawal are wired. `?booking=0` is a valid recovery link.
+- **Group timebox registry integration (release-gated)** publishes public
+  timeboxes from owned drafts: subject, UTC interval, asset, per-head or split
+  pricing, 1-50 attendee seats (host plus at least one), hardline and the
+  host's IANA timezone. Each attendee joins with their own timezone; the
+  registry rejects overlapping open timeboxes for the same host. Exact USDC
+  approval is separate from joining; confirmed receipts are reconciled.
+  Per-seat release, host refunds/cancellation, minimum-not-met and
+  seven-day reclaims and ETH/USDC credit withdrawal are wired.
+  `?booking=<id>` (IDs start at 1) is the permanent recovery link.
   The Bookings / recover / withdraw control reports an undeployed registry
   explicitly, never as an empty booking. Every read verifies the pinned Base
   runtime hash and policy; transactions additionally require the release gate
   and current Base wallet. No registry address is configured on the live site.
 - A recovered chain slot can be shown as a **checked calendar snapshot**,
-  enriched with host/buyer ENS display identities. Clicking it re-reads the
+  enriched with host/attendee ENS display identities. Clicking it re-reads the
   registry; artwork and local/imported fields never authorize payment.
   Snapshots are cleared on wallet changes and are not an automatic index.
+- **Two clocks, one agreement.** Times always render in your local
+  timezone. Slot details and agreements add one compact line for the other
+  party, such as "🌙 2:00 AM - 3:00 AM Fri for host (Asia/Tokyo, +16h vs you,
+  +1 day)", and the roster shows each attendee's local time. Timezones are
+  public on-chain when you publish or join; they are display context and
+  never change the UTC interval.
 - One canonical DecentHead 2.0.0 session: EIP-6963/injected-wallet discovery,
   explicit connect/disconnect, Base mainnet (8453), verified ENS display,
   orbit styling, storage-provider controls and a DCal About modal.
@@ -50,10 +60,15 @@ were deployed by this integration.
   browser records are not included or modified.
 - **Public availability** previews only explicitly public events. Publishing
   requires consent, confirmation and the user's configured Pinata or local
-  Kubo provider. It does not publish private events, room IDs, booking state,
+  Kubo provider, and includes each public slot's host timezone and seat
+  terms. It does not publish private events, room IDs, booking state,
   token IDs, feed credentials or unrelated localStorage. Public descriptions
   still need human review: do not put secrets in them. IPFS copies may
   persist forever. A returned CID is not proof of durable retention.
+  IPFS is used only for this public availability; private events and
+  backups stay in the browser/your files, and booking terms live on Base.
+  A local Kubo node must allow the page origin in its API CORS headers, and
+  Chrome asks for local-network permission when the live site calls it.
 - Importing a DCal public-availability CID displays read-only information;
   it does not overwrite local events, authorize meetings or prove bookings.
   Calendar-feed import and automatic wallet-to-CID discovery are not yet
@@ -105,7 +120,9 @@ documented interface, but holds sale proceeds rather than enforcing DCal's
 per-booking refund policy. The work-order model lacks native ETH and DCal's
 fee/time rules; the performance model uses USDC-only admin approval,
 performer auto-claim and optional kill fees. These cannot become DCal's
-buyer-controlled, no-admin policy through a UI wrapper.
+attendee-protective, no-adjudicator group timebox policy through a UI
+wrapper. Its only admin power is a token allowlist (owner: DecentAgency.eth),
+which can never move escrow.
 
 Choice: retain the focused `DCalBooking` candidate as the booking member
 of the escrow family, with a separate deployment if approved. Reuse shared
@@ -160,12 +177,13 @@ background is not part of that accessibility guarantee.
 External calendar bridges, deployed/reviewed Base escrow,
 authenticated Rabbit Hole meetings, hardline countdown/termination and
 production operation still require implementation/integration and release checks.
-The new candidate registry in `contracts/DCalBooking.sol` implements the
-approved buyer-protective economic policy. Checkout/recovery is connected
-and tested locally, including canonical-USDC Base-fork acceptance, but
-independent review, deployment and a steward-approved minimal production
-rehearsal remain. Cross-slot overlap/conflict prevention and a global
-discovery index are not implemented. The old market must not be used.
+The new candidate registry in `contracts/DCalBooking.sol` (`dcal-timebox-1`)
+implements the approved group timebox policy. Checkout/recovery is connected
+and tested locally, including a canonical-USDC Base-fork group split, and an
+AI security pre-review found no issues; an independent human review,
+deployment and a steward-approved minimal production rehearsal remain.
+Per-host on-chain overlap is prevented; external-calendar conflicts, a
+global discovery index and meeting artifacts are not implemented. The old market must not be used.
 The legacy meeting prototype is not authenticated booking access and is
 disabled on the published prototype. Event clicks cannot request media.
 Repository publication is a separate history/metadata review and explicit

@@ -67,18 +67,19 @@ try {
       await window.openSlotDetails({
         title: '<script>not executable</script>', description: 'Learn together',
         creator: owner, owner, start: '2026-11-02T10:00:00Z', end: '2026-11-02T11:30:00Z',
-        currency: 'USDC', assetId: 'base:usdc', hourlyRate: 1.01, rateAmount: '1.01', readOnly: true,
+        currency: 'USDC', assetId: 'base:usdc', hourlyRate: 1.01, rateAmount: '1.01', readOnly: true, timezone: 'Asia/Tokyo',
       });
     });
     await page.locator('#slot-details-content').filter({ hasText: '1.515 USDC' }).waitFor();
     assert.equal(await page.locator('#slot-details img[alt="USDC"]').count(), 1);
+    await page.locator('#slot-details-content').filter({ hasText: 'for host (Asia/Tokyo' }).waitFor();
     assert.equal(await page.locator('#slot-details-title script').count(), 0);
     assert.ok((await page.locator('#slot-details-content').textContent()).includes('not a verified booking'));
     assert.ok((await page.locator('#slot-details-content').textContent()).includes('ENS unavailable'));
     await page.locator('#slot-details [data-close]').click();
     await page.locator('#open-booking-registry').click();
     await page.locator('#booking-registry-gate').filter({ hasText: 'Transactions are disabled' }).waitFor();
-    await page.locator('#booking-id').fill('0');
+    await page.locator('#booking-id').fill('1');
     await page.locator('#load-booking-id').click();
     await page.locator('#booking-registry-status').filter({ hasText: 'not deployed and pinned' }).waitFor();
     assert.equal(await page.locator('#booking-registry [data-write]:enabled').count(), 0);

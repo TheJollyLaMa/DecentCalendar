@@ -1,5 +1,6 @@
 import { assetImage, formatAmount } from './assets.js';
-import { createBookingClient, bookingActions, bookingAsset, bookingId, offerFromDraft } from './booking-client.js';
+import { createBookingClient, bookingActions, bookingAsset, bookingId, offerFromDraft, seatAmounts, PRICING, SEAT_STATES } from './booking-client.js';
+import { counterpartTime, localTimeZone, validTimeZone } from './timezones.js';
 import { profileImage } from './ens-profile.js';
 
 export function installBookingUI() {
@@ -70,7 +71,7 @@ export function installBookingUI() {
     return generation;
   };
   function identities(slot, request) {
-    for (const [role, address] of [['Host', slot.host], ['Buyer', slot.buyer]]) {
+    for (const [role, address] of [['Host', slot.host], ...(slot.seats || []).map((seat, index) => [`Attendee ${index + 1}`, seat.attendee])]) {
       if (!address || /^0x0{40}$/i.test(address)) continue;
       const card = document.createElement('section');
       card.setAttribute('aria-label', `${role} ENS display identity`);
@@ -89,38 +90,55 @@ export function installBookingUI() {
       });
     }
   }
+  const when = (start, end) => [new Date(Number(start) * 1000), new Date(Number(end) * 1000)];
   function agreement(slot) {
-    const asset = bookingAsset(slot.asset), fee = slot.gross * 300n / 10000n;
+    const asset = bookingAsset(slot.asset), amount = value => `${formatAmount(value, asset.decimals)} ${asset.symbol}`;
+    const { deposit, charge } = seatAmounts(slot, slot.attendees || slot.minAttendees);
+    const fee = charge * 300n / 10000n, [start, end] = when(slot.start, slot.end);
     content.append(assetImage(asset));
-    line('Public title', slot.metadata);
+    line('Meeting subject', slot.subject);
     line('Host', slot.host);
-    if (slot.buyer) line('Buyer', slot.buyer);
-    line('UTC interval', `${new Date(Number(slot.start) * 1000).toISOString()} - ${new Date(Number(slot.end) * 1000).toISOString()}`);
-    line('Your timezone', `${Intl.DateTimeFormat().resolvedOptions().timeZone}: ${new Date(Number(slot.start) * 1000).toLocaleString()} - ${new Date(Number(slot.end) * 1000).toLocaleString()}`);
+    line('Your time', `${start.toLocaleString()} - ${end.toLocaleTimeString()} (${localTimeZone()})`);
+    line('Host time', counterpartTime(start, end, slot.hostTimezone ?? slot.timezone, 'host'));
+    line('UTC interval', `${start.toISOString()} - ${end.toISOString()}`);
+    line('Seats', `${slot.attendees ?? 0} joined; minimum ${slot.minAttendees}, maximum ${slot.maxAttendees} attendees plus host`);
     line('Asset', `${asset.symbol} on Base (8453), ${asset.address || 'native ETH'}`);
-    line('Escrow gross', `${formatAmount(slot.gross, asset.decimals)} ${asset.symbol}`);
-    line('On settlement only', `${formatAmount(slot.gross - fee, asset.decimals)} host + ${formatAmount(fee, asset.decimals)} development (3%)`);
+    if (slot.pricing === 0) {
+      line('Per-head price', `${amount(slot.price)} per attendee`);
+    } else {
+      line('Split total', `${amount(slot.price)} shared by all attendees`);
+      line('Split deposit', `${amount(deposit)} each (total / minimum). At release each attendee pays total / attendees at start and the rest is credited back.`);
+    }
+    line('On release, per seat', `${amount(charge - fee)} host + ${amount(fee)} development (3%)${slot.pricing === 1 ? ` at ${slot.attendees || slot.minAttendees} attendees` : ''}`);
     line('Fee recipient (immutable)', config.feeRecipient || 'Not yet deployed');
     line('Hardline agreement', slot.hardline ? 'End at the fixed UTC finish; five-minute warning. Meeting access is not live.' : 'No agreed hardline. Meeting access is not live.');
-    line('Policy', 'Either party: full refund strictly before start. Host: full refund while funded. Buyer: release after end or refund after seven unresolved days. No admin dispute power. Resolution creates withdrawal credit, not an automatic wallet transfer.');
+    line('Policy', 'Host timeboxes never overlap. Attendees cannot leave on their own before start; the host may refund any seat or cancel the timebox (full credit). If the minimum is not met by start, attendees reclaim in full. After the end each attendee releases their own seat, or reclaims after seven unresolved days. Token admin cannot touch escrow. Resolution creates withdrawal credit, not an automatic transfer.');
+  }
+  function roster(slot) {
+    const [start, end] = when(slot.start, slot.end);
+    for (const [index, seat] of slot.seats.entries()) {
+      line(`Attendee ${index + 1}`, `${seat.attendee} - ${SEAT_STATES[seat.state]} - ${counterpartTime(start, end, seat.timezone, 'them')}`);
+    }
   }
   async function renderBooking(id, request = show()) {
     const service = await api(), slot = await service.read(id);
     if (request !== generation || !dialog.open) return;
     content.replaceChildren();
     line('Registry', `${config.address} on Base (8453)`);
-    line('Booking ID', slot.id);
-    line('Chain state', ['Available', 'Funded', 'Settled', 'Refunded', 'Withdrawn'][slot.state]);
+    line('Timebox ID', slot.id);
+    line('Chain state', `${['Open', 'Cancelled'][slot.state]}${slot.state === 0 && slot.now >= slot.start ? (slot.attendees >= slot.minAttendees ? ' - confirmed' : ' - minimum not met') : ''}`);
     line('State checked at Base time', new Date(Number(slot.now) * 1000).toISOString());
+    line('Token admin (allowlist only)', slot.owner);
     agreement(slot);
+    roster(slot);
     identities(slot, request);
     const url = new URL(location.href);
     url.search = ''; url.hash = ''; url.searchParams.set('booking', slot.id.toString());
     const link = document.createElement('a');
-    link.href = url.href; link.textContent = 'Permanent booking link'; content.append(link);
-    button('Copy booking link', async () => {
+    link.href = url.href; link.textContent = 'Permanent timebox link'; content.append(link);
+    button('Copy timebox link', async () => {
       await navigator.clipboard.writeText(url.href);
-      status.textContent = 'Booking link copied.';
+      status.textContent = 'Timebox link copied.';
     });
     button('Refresh chain state', () => renderBooking(slot.id));
     button('Show checked slot on calendar', async () => {
@@ -131,45 +149,56 @@ export function installBookingUI() {
       generation++; dialog.close();
     });
     const actions = bookingActions(slot, getSession().address, slot.now);
-    if (actions.book) {
+    const asset = bookingAsset(slot.asset);
+    if (actions.join) {
+      const zoneLabel = document.createElement('label'), zone = document.createElement('input');
+      zoneLabel.textContent = 'Your timezone (public, permanent on Base): ';
+      zone.value = localTimeZone(); zone.autocomplete = 'off'; zone.id = 'booking-join-timezone';
+      zoneLabel.append(zone); content.append(zoneLabel);
       const consent = document.createElement('label'), check = document.createElement('input');
       check.type = 'checkbox';
-      consent.append(check, document.createTextNode(' I agree to this exact UTC interval, asset, gross, hardline and refund policy. Base gas is separate.'));
+      consent.append(check, document.createTextNode(` I agree to this exact interval, deposit (${formatAmount(slot.deposit, asset.decimals)} ${asset.symbol}), hardline and policy, and to publishing my wallet and timezone. Base gas is separate.`));
       content.append(consent);
-      if (bookingAsset(slot.asset).id === 'base:usdc' && slot.gross > 0n) {
+      const ready = () => {
+        if (!check.checked) throw new Error('Review and check the agreement first.');
+        if (!validTimeZone(zone.value.trim())) throw new Error('Enter a valid IANA timezone, such as Europe/Lisbon.');
+      };
+      if (asset.address && slot.deposit > 0n) {
         const allowance = await service.allowance(slot);
         if (request !== generation || !dialog.open) return;
-        line('USDC allowance to this registry', formatAmount(allowance, 6));
-        if (allowance < slot.gross) button('Approve exact USDC amount (not a booking)', async () => {
-          if (!check.checked) throw new Error('Review and check the agreement before approval.');
+        line(`${asset.symbol} allowance to this registry`, formatAmount(allowance, asset.decimals));
+        if (allowance < slot.deposit) button(`Approve exact ${asset.symbol} deposit (not a booking)`, async () => {
+          ready();
           const request = generation;
           await service.approve(slot.id);
           if (request !== generation || !dialog.open) return;
           await renderBooking(slot.id);
-          status.textContent = 'Approval confirmed. Review the agreement again, then book separately. Approval alone reserves no time.';
+          status.textContent = 'Approval confirmed. Review the agreement again, then join separately. Approval alone reserves no seat.';
         }, true);
       }
-      button('Book this exact agreement', async () => {
-        if (!check.checked) throw new Error('Review and check the agreement before booking.');
+      button('Join this timebox', async () => {
+        ready();
         const request = generation;
-        await service.book(slot);
+        await service.join(slot, zone.value.trim());
         if (request !== generation || !dialog.open) return;
         await renderBooking(slot.id);
-        status.textContent = 'Booking receipt confirmed. Refreshed chain state is shown above.';
+        status.textContent = 'Seat receipt confirmed. Refreshed chain state is shown above.';
       }, true);
     }
-    for (const [action, text] of [
-      ['withdrawOffer', 'Withdraw unbooked offer'],
-      ['release', 'Release escrow: 97% host / 3% development'],
-      ['refund', 'Resolve with full refund credit to buyer'],
-    ]) if (actions[action]) button(text, async () => {
+    const resolve = (text, action) => button(text, async () => {
       if (!window.confirm(`${text}? This submits a Base transaction. Credits require a separate withdrawal.`)) return;
       const request = generation;
-      await service[action](slot.id);
+      await action();
       if (request !== generation || !dialog.open) return;
       await renderBooking(slot.id);
       status.textContent = 'Resolution confirmed. Use My withdrawal credits to move any credit to your wallet.';
     }, true);
+    if (actions.release) resolve(`Release my seat: ${slot.pricing === 1 ? 'split charge' : 'price'} to host, 3% development`, () => service.release(slot.id));
+    for (const attendee of actions.refund) {
+      resolve(attendee.toLowerCase() === getSession().address?.toLowerCase() ? 'Reclaim my full deposit' : `Refund seat ${attendee} in full`,
+        () => service.refund(slot.id, attendee));
+    }
+    if (actions.cancel) resolve('Cancel timebox, free the time and refund every funded seat', () => service.cancel(slot.id));
     if (!getSession().address) line('Wallet', 'Connect explicitly on Base to see actions for your address.');
     status.textContent = 'Read from the pinned registry, not local or imported booking claims. Refresh after time boundaries or external transactions.';
   }
@@ -181,15 +210,15 @@ export function installBookingUI() {
       try {
         const offer = offerFromDraft(event);
         if (offer.host?.toLowerCase() !== getSession().address?.toLowerCase()) throw new Error('Connect the local draft owner to publish.');
-        agreement(offer);
-        line('Publication', 'This title, wallet, price and interval become public on Base forever. No private description or room ID is uploaded. Review timezone and your other calendars; v1 does not enforce cross-slot conflicts.');
+        agreement({ ...offer, hostTimezone: offer.timezone, attendees: 0, deposit: seatAmounts(offer).deposit });
+        line('Publication', `This subject, wallet, price, seats, interval and your timezone (${offer.timezone}) become public on Base forever. No private description or room ID is uploaded. The registry rejects timeboxes that overlap your other open on-chain timeboxes.`);
         button('Publish public on-chain offer', async () => {
           if (!window.confirm('Publish these public terms permanently on Base? This is not a private calendar save.')) return;
           const request = generation;
           const id = await (await api()).create(offer);
           if (request !== generation || !dialog.open) return;
           await renderBooking(id);
-          status.textContent = `Offer ${id} confirmed. Save its permanent booking link. Your local draft remains unverified.`;
+          status.textContent = `Offer ${id} confirmed. Save its permanent timebox link. Your local draft remains unverified.`;
         }, true);
       } catch (error) { status.textContent = error.message; }
     },

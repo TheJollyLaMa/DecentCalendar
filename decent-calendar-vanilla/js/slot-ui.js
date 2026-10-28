@@ -1,5 +1,7 @@
 import { ASSETS, getAsset, assetImage, eventAsset, formatAmount, slotQuote } from './assets.js';
 import { profileImage } from './ens-profile.js';
+import { bookingAsset } from './booking-client.js';
+import { counterpartTime, localTimeZone } from './timezones.js';
 
 export function installSlotUI({ profiles }) {
   const dialog = document.getElementById('slot-details');
@@ -26,7 +28,7 @@ export function installSlotUI({ profiles }) {
     line.append(strong, document.createTextNode(value));
     content.append(line);
   };
-  window.DCalAssets = { eventAsset, assetImage };
+  window.DCalAssets = { eventAsset, assetImage, bookingAsset };
   window.openSlotDetails = async event => {
     const request = ++generation;
     content.replaceChildren();
@@ -34,8 +36,10 @@ export function installSlotUI({ profiles }) {
     document.getElementById('slot-details-title').textContent = event.title;
     const asset = eventAsset(event);
     if (asset) content.append(assetImage(asset));
-    label('Time', `${new Date(event.start).toLocaleString()} - ${new Date(event.end).toLocaleString()}`);
-    label('Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    label('Your time', `${new Date(event.start).toLocaleString()} - ${new Date(event.end).toLocaleTimeString()} (${localTimeZone()})`);
+    const mine = (event.creator || event.owner || '').toLowerCase() === window._walletAddress?.toLowerCase();
+    if (event.timezone && !mine) label('Host time', counterpartTime(event.start, event.end, event.timezone, 'host'));
+    else if (event.timezone) label('Your published timezone', event.timezone);
     label('Description', event.description || 'No description');
     label('Record', event.readOnly ? 'Imported availability - read-only, not a verified booking' : 'Local draft - not a verified booking');
     label('Host wallet', event.creator || event.owner || 'Unavailable');
@@ -44,7 +48,9 @@ export function installSlotUI({ profiles }) {
         const quote = slotQuote(event);
         label('Asset', `${asset.symbol} on Base (8453), ${asset.address || 'native ETH'}, ${asset.decimals} decimals`);
         label('Hourly rate', `${event.rateAmount} ${asset.symbol}`);
-        label('Total preview', `${formatAmount(quote.gross, asset.decimals)} ${asset.symbol}`);
+        const split = event.pricing === 'split';
+        label(split ? 'Group total (split)' : 'Price per attendee', `${formatAmount(quote.gross, asset.decimals)} ${asset.symbol}`);
+        if (event.pricing) label('Seats', `${event.minAttendees}-${event.maxAttendees} attendees plus host`);
         label('Development (3%)', `${formatAmount(quote.fee, asset.decimals)} ${asset.symbol}`);
         label('Host (remainder)', `${formatAmount(quote.host, asset.decimals)} ${asset.symbol}`);
         label('Gas', 'Base network gas is separate; preview requests no transaction.');
@@ -95,7 +101,7 @@ export function installSlotUI({ profiles }) {
     title.textContent = `${info.timeText ? `${info.timeText} ` : ''}${info.event.title}`;
     nodes.push(title);
     const addresses = props.registrySnapshot
-      ? [['Host', props.creator], ['Buyer', props.buyer]]
+      ? [['Host', props.creator], ...(props.attendees || []).slice(0, 3).map(address => ['Seat', address])]
       : [['Host', props.creator || props.owner]];
     for (const [role, address] of addresses) if (/^0x[0-9a-f]{40}$/i.test(address || '')) {
       const identity = document.createElement('span');

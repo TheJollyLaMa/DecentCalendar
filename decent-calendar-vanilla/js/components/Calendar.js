@@ -4,6 +4,7 @@
    Delegates to calendar.js global functions for FullCalendar logic. */
 
 import { getAsset, parseAmount } from '../assets.js';
+import { localTimeZone, validTimeZone } from '../timezones.js';
 
 class DecentCalendar extends HTMLElement {
   connectedCallback() {
@@ -90,6 +91,10 @@ class DecentCalendar extends HTMLElement {
     document.getElementById('event-public').checked = true;
     document.getElementById('event-private').checked = false;
     document.getElementById('event-hardline').checked = false;
+    document.getElementById('event-pricing').value = 'per-head';
+    document.getElementById('event-min-attendees').value = '1';
+    document.getElementById('event-max-attendees').value = '1';
+    document.getElementById('event-timezone').value = localTimeZone();
     document.getElementById('add-event-modal').classList.remove('hidden');
   }
 
@@ -107,6 +112,18 @@ class DecentCalendar extends HTMLElement {
     catch (error) { alert(error.message); return; }
     const hourlyRate = Number(rateAmount);
     const isPublic = document.getElementById('event-public').checked;
+    const pricing = document.getElementById('event-pricing').value;
+    const minAttendees = Number(document.getElementById('event-min-attendees').value);
+    const maxAttendees = Number(document.getElementById('event-max-attendees').value);
+    const timezone = document.getElementById('event-timezone').value.trim();
+    if (![minAttendees, maxAttendees].every(Number.isInteger) || minAttendees < 1 || minAttendees > maxAttendees || maxAttendees > 50) {
+      alert('Attendees must satisfy 1 <= minimum <= maximum <= 50.');
+      return;
+    }
+    if (!validTimeZone(timezone)) {
+      alert('Enter a valid IANA timezone, such as America/Denver.');
+      return;
+    }
 
     if (!title || !start || !end) {
       alert('Please fill out all fields.');
@@ -127,6 +144,7 @@ class DecentCalendar extends HTMLElement {
       hourlyRate,
       rateAmount,
       hardline: document.getElementById('event-hardline').checked,
+      pricing, minAttendees, maxAttendees, timezone,
       assetId: asset.id,
       currency: asset.symbol,
       isPublic,

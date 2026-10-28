@@ -52,6 +52,7 @@ async function saveEvent(address, event) {
     hourlyRate: parseFloat(event.hourlyRate) || 0,
     ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
     ...(event.hardline !== undefined ? { hardline: event.hardline } : {}),
+    ...(event.pricing ? { pricing: event.pricing, minAttendees: event.minAttendees, maxAttendees: event.maxAttendees } : {}),
     currency: event.currency || 'ETH',
     status: event.status || 'available',
     meetingRoomId: event.meetingRoomId || `meeting-${Date.now()}-${address}`,

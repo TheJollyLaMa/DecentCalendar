@@ -9,10 +9,11 @@ let currentLookupAddress = '';
 const registrySlots = new Map();
 
 function showRegistrySlot(slot) {
-  const asset = window.DCalAssets.eventAsset({ assetId: slot.asset === '0x0000000000000000000000000000000000000000' ? 'base:eth' : 'base:usdc' });
+  const asset = window.DCalAssets.bookingAsset(slot.asset);
   registrySlots.set(`${slot.registry}:${slot.id}`, {
     id: `registry:${slot.registry}:${slot.id}`, registryId: slot.id.toString(),
-    title: slot.metadata, creator: slot.host, buyer: /^0x0{40}$/i.test(slot.buyer) ? null : slot.buyer,
+    title: slot.subject, creator: slot.host, timezone: slot.hostTimezone,
+    attendees: slot.seats.filter(seat => seat.state !== 3).map(seat => seat.attendee),
     start: new Date(Number(slot.start) * 1000).toISOString(),
     end: new Date(Number(slot.end) * 1000).toISOString(),
     assetId: asset.id, currency: asset.symbol, registrySnapshot: true,

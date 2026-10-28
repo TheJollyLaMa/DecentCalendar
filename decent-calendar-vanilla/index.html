@@ -73,7 +73,7 @@
     <button type="button" data-close aria-label="Close booking registry">Close</button>
     <h2 id="booking-registry-title">Base booking registry</h2>
     <p id="booking-registry-gate"></p>
-    <label>Booking ID <input id="booking-id" inputmode="numeric" placeholder="0" autocomplete="off" /></label>
+    <label>Timebox ID <input id="booking-id" inputmode="numeric" placeholder="1" autocomplete="off" /></label>
     <button id="load-booking-id" type="button">Read booking from Base</button>
     <button id="load-booking-credits" type="button">My withdrawal credits</button>
     <div id="booking-registry-content"></div>
@@ -131,9 +131,19 @@
         <select id="event-asset" name="asset"></select><span id="event-asset-icon"></span>
       </label>
       <label>
-        Hourly rate (exact decimal, preview only):
+        Hourly rate (exact decimal; per attendee, or the group total when split):
         <input type="text" inputmode="decimal" id="event-rate" name="hourlyRate" placeholder="0.05" />
       </label>
+      <label>
+        Pricing:
+        <select id="event-pricing">
+          <option value="per-head">Per head - each attendee pays the price</option>
+          <option value="split">Split - attendees share the total</option>
+        </select>
+      </label>
+      <label>Minimum attendees (plus you) <input type="number" id="event-min-attendees" min="1" max="50" step="1" value="1" /></label>
+      <label>Maximum attendees <input type="number" id="event-max-attendees" min="1" max="50" step="1" value="1" /></label>
+      <label>Your timezone (published with public offers) <input type="text" id="event-timezone" autocomplete="off" /></label>
       <label><input type="checkbox" id="event-hardline" /> Request a fixed-end meeting hardline (final five-minute warning; meetings not live)</label>
       <div class="checkbox-group">
         <label>

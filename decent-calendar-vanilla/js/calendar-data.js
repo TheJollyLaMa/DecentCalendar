@@ -1,4 +1,5 @@
 import { getAsset, parseAmount } from './assets.js';
+import { validTimeZone } from './timezones.js';
 
 export const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
 const MAX_EVENTS = 2000;
@@ -46,6 +47,14 @@ function eventsForOwner(events, owner) {
       if (typeof event.hardline !== 'boolean') throw new Error('Invalid hardline option.');
       result.hardline = event.hardline;
     }
+    if (event.pricing !== undefined) {
+      const { minAttendees: min, maxAttendees: max } = event;
+      if (!['per-head', 'split'].includes(event.pricing) || ![min, max].every(Number.isInteger) || min < 1 || min > max || max > 50) {
+        throw new Error('Invalid pricing or attendee bounds.');
+      }
+      Object.assign(result, { pricing: event.pricing, minAttendees: min, maxAttendees: max });
+    }
+    if (event.timezone !== undefined && event.timezone !== null && event.timezone !== '' && !validTimeZone(event.timezone)) throw new Error('Invalid timezone.');
     for (const field of ['id', 'date', 'startTime', 'endTime', 'timezone', 'status', 'meetingRoomId', 'createdAt', 'ipfsCID', 'buyer', 'paypalOrderId']) {
       if (event[field] !== undefined && event[field] !== null) result[field] = text(event[field], 500, field);
     }
@@ -114,6 +123,8 @@ export function createPublicAvailability(storage, wallet) {
       hourlyRate: event.hourlyRate, currency: event.currency, isPublic: true,
       ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
       ...(event.hardline !== undefined ? { hardline: event.hardline } : {}),
+      ...(event.pricing ? { pricing: event.pricing, minAttendees: event.minAttendees, maxAttendees: event.maxAttendees } : {}),
+      ...(event.timezone ? { timezone: event.timezone } : {}),
     })),
   };
 }
@@ -127,5 +138,7 @@ export function importPublicAvailability(document) {
     currency: event.currency, isPublic: true, classNames: ['imported-event'], readOnly: true,
     ...(event.assetId ? { assetId: event.assetId, rateAmount: event.rateAmount } : {}),
     ...(event.hardline !== undefined ? { hardline: event.hardline } : {}),
+    ...(event.pricing ? { pricing: event.pricing, minAttendees: event.minAttendees, maxAttendees: event.maxAttendees } : {}),
+    ...(event.timezone ? { timezone: event.timezone } : {}),
   })) };
 }
