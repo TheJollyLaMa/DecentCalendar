@@ -3,6 +3,23 @@
 
 ## Invitations for published timeboxes
 
+The right ankh's **Invitations** menu discovers host-signed public invitations
+from the pinned `DCalInvitations` Base registry. It checks on Base wallet connect
+and once per minute while the page is visible (or explicitly on Refresh).
+Unknown hosts appear as Requests; trust a host to enable the neon-blue unread
+badge. Mute/read/trust settings are browser-local and wallet/registry-scoped.
+Disconnect and wallet changes clear the visible inbox and badge.
+Reads are paginated newest-first, 50 at a time; the badge covers loaded pages,
+not the entire history. Registry/RPC/storage failures show unavailable rather
+than a successful empty inbox.
+
+**Send public Base invitation** requires a transaction from the timebox host
+before its start. Host, recipient, timebox, revisions and preferences are public
+forever, even if withdrawn. There is no message body, payment or meeting access.
+Optional “Place requested” and “Intended invitees only” are **non-binding**:
+they neither hold nor restrict seats. Only the booking contract's Join action
+commits a seat. The registry cannot move funds or change booking terms.
+
 For a published timebox, **Invite & remember** offers device sharing (clipboard
 fallback), an `.ics` download, and a Google Calendar template link. Calendar
 exports use the exact UTC interval, include the host timezone, and are static
@@ -14,32 +31,36 @@ a recipient-specific link. The recipient address is visible in that link.
 Creating it sends nothing; the host shares it explicitly. An invite link is
 untrusted routing metadata, **not proof the host sent it**, authorization, or an
 invite-only restriction. The deployed contract still permits anyone to join
-before the start while seats remain. Public payment writes remain gated.
+before the start while seats remain. Public payments are enabled as a tiny-value
+beta at explicit steward direction, before independent audit and a complete
+mainnet rehearsal. Funds are at risk; keep stakes small.
 
 The invitation roster is local to this origin/browser, scoped to Base, registry,
 host and timebox ID. It is not included in calendar backups, public availability
 or IPFS uploads. A matching seat's status comes from the last chain read; refresh
 to reconcile. ENS display failures retain the resolved wallet. No email, Discord
-or wallet notification is sent, and personal notes are not placed in URLs.
+notification is sent by copying a link. The separate public Base send action
+delivers to the recipient inbox; personal notes are never placed in URLs.
 
 Reuse: this adapts DCal's existing `createProfileResolver.address` / `lookup`,
 `profileImage`, `bookingId`, and checked booking snapshots at `b5da459`.
 The Busking action-badge/signed-acknowledgement lead recorded in #31 is not needed
-for this link-only phase; its notification delivery and different escrow terms
-are not imported. No shared package or contract change is introduced.
+for this implementation; its notification delivery and different escrow terms
+are not imported. `DCalInvitations` is a separate, fundless registry that reads
+the existing `DCalBooking.getSlot`; no booking-contract change is introduced.
 Acceptance is exercised by `tests/invitations.test.js` and the existing
 `scripts/verify-booking.mjs` at 1440 and 390 pixels in New York and Tokyo.
 Native Apple/Outlook/Google import still needs a manual receiving-calendar check.
 
 ## First-version build: shared Head foundation
 
-The vanilla app is the active receiving implementation for this work. The
-React prototype has not been migrated. This is **not a live paid-booking
-service**: minting, checkout, fiat payment, settlement and video meetings remain unavailable
-until the Base release gates are implemented and validated. No contracts
-were deployed by this integration.
+The vanilla app is the active receiving implementation. The React prototype
+has not been migrated. ETH/USDC booking and settlement are a **small-value
+Base mainnet beta**. Independent audit and complete mainnet rehearsal are not
+yet recorded. NFT minting, fiat checkout and authenticated video meetings
+remain unavailable.
 
-- **Follow the white rabbit**: an eleven-hop, replayable tutorial below the
+- **Follow the white rabbit**: a twelve-hop, replayable tutorial below the
   header and in the right ankh. It remembers your place and supports
   keyboard navigation, Escape, reduced motion and explicit storage errors.
   It never connects, signs, pays, uploads or requests media.
@@ -53,7 +74,7 @@ were deployed by this integration.
   unrelated Ommm/SmartHome decorations are removed. ETH animation has a
   reduced-motion still. No imported image or currency symbol can authorize
   payment. Gross rounds up and the 300 bps fee rounds down in base units.
-- **Group timebox registry integration (release-gated)** publishes public
+- **Group timebox registry integration (small-value beta)** publishes public
   timeboxes from owned drafts: subject, UTC interval, asset, per-head or split
   pricing, 1-50 attendee seats (host plus at least one), hardline and the
   host's IANA timezone. Each attendee joins with their own timezone; the
@@ -66,7 +87,8 @@ were deployed by this integration.
   explicitly, never as an empty booking. Every read verifies the pinned Base
   runtime hash and policy; transactions additionally require the release gate
   and current Base wallet. The live site pins the Base deployment below with
-  `writesEnabled: false` until the live rehearsal is accepted.
+  `writesEnabled: true` at explicit steward direction. Keep stakes tiny until
+  independent review and complete mainnet rehearsal are recorded.
 - A recovered chain slot can be shown as a **checked calendar snapshot**,
   enriched with host/attendee ENS display identities. Clicking it re-reads the
   registry; artwork and local/imported fields never authorize payment.

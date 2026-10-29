@@ -1,0 +1,11 @@
+{
+  "chainId": 8453,
+  "address": "0xde00A0B54FB76DC453B3A68522c592617430556c",
+  "booking": "0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A",
+  "deployer": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "transactionHash": "0xf4803d4686eaa368087384cde9a7b90cc2ec7b460569c04f7a013c5d0914c82e",
+  "blockNumber": 53243136,
+  "runtimeCodeHash": "0x5daf254be1c1cb9fa3bc9b76a6d36e3942d41856fff27a13645547c48057c906",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "version": "dcal-invitations-1"
+}

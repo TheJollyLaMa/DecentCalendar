@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { network } from 'hardhat';
 import { BrowserProvider, Contract, ContractFactory, keccak256, ZeroAddress } from 'ethers';
 import { compileBooking } from './compile-booking.mjs';
+import { compileInvitations } from './compile-invitations.mjs';
 import { ASSETS } from '../decent-calendar-vanilla/js/assets.js';
 
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error('Set PLAYWRIGHT_MODULE to an existing Playwright installation.');
@@ -41,6 +42,7 @@ contract Token {
   }
 }`;
 const build = await compileBooking({ 'Token.sol': { content: mock } });
+const invitationBuild = await compileInvitations();
 let browser;
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const url = `http://127.0.0.1:${server.address().port}${prefix}`;
@@ -57,6 +59,12 @@ try {
     await (await token.mint(buyer.address, 1515000n)).wait();
     const market = await new ContractFactory(build.artifact.abi, build.artifact.evm.bytecode.object, host).deploy(fee.address, host.address, [ASSETS[1].address]);
     await market.waitForDeployment();
+    const invitationContract = await new ContractFactory(invitationBuild.artifact.abi, invitationBuild.artifact.evm.bytecode.object, host).deploy(await market.getAddress());
+    await invitationContract.waitForDeployment();
+    const invitationConfig = {
+      address: await invitationContract.getAddress(),
+      runtimeCodeHash: keccak256(await provider.getCode(await invitationContract.getAddress())),
+    };
     const config = { address: await market.getAddress(), feeRecipient: fee.address,
       runtimeCodeHash: keccak256(await provider.getCode(await market.getAddress())), writesEnabled: true };
     const timezoneId = width === 1440 ? 'America/New_York' : 'Asia/Tokyo';
@@ -77,7 +85,7 @@ try {
       });
       await page.route('**/decent.config.js', async route => {
         const response = await route.fetch();
-        await route.fulfill({ response, body: `${await response.text()}\nwindow.DECENT_CONFIG.ens.enabled=false;window.DECENT_CONFIG.booking=${JSON.stringify(config)};` });
+        await route.fulfill({ response, body: `${await response.text()}\nwindow.DECENT_CONFIG.ens.enabled=false;window.DECENT_CONFIG.booking=${JSON.stringify(config)};window.DECENT_CONFIG.invitations=${JSON.stringify(invitationConfig)};` });
       });
       const connect = async address => {
         await page.evaluate(async address => {
@@ -135,6 +143,11 @@ try {
       const inviteLink = await invitations.getByRole('list', { name: 'Local invitation roster' }).getByRole('link').getAttribute('href');
       assert.equal(new URL(inviteLink).searchParams.get('invite'), buyer.address.toLowerCase());
       await invitations.filter({ hasText: 'friend.eth' }).waitFor();
+      await invitations.locator('#invitation-preference').selectOption('2');
+      await invitations.getByRole('button', { name: 'Send public Base invitation' }).click();
+      await invitations.getByRole('status').filter({ hasText: 'Public invitation confirmed' }).waitFor();
+      assert.equal(await invitationContract.inboxCount(buyer.address), 1n);
+      assert.equal((await market.getSlot(1)).attendees, 0n);
       const downloadPromise = page.waitForEvent('download');
       await invitations.getByRole('button', { name: 'Download calendar (.ics)' }).click();
       const download = await downloadPromise;
@@ -153,6 +166,23 @@ try {
       await page.goto(inviteLink);
       await status.filter({ hasText: 'Read from the pinned registry' }).waitFor();
       await connect(buyer.address);
+      const ankh = page.locator('ankh-menu[side="right"]');
+      await ankh.locator('summary').click();
+      await ankh.getByRole('button', { name: 'Invitations', exact: true }).click();
+      const inbox = page.getByRole('dialog', { name: 'Invitations inbox' });
+      await inbox.getByRole('status').filter({ hasText: 'Checked 1 of 1' }).waitFor();
+      await inbox.locator('section').filter({ hasText: 'Request from' }).waitFor();
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), false);
+      await inbox.getByRole('button', { name: 'Trust host', exact: true }).click();
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), true);
+      assert.equal(await ankh.locator('.invitation-dot').textContent(), '1');
+      if (process.env.INVITATION_SCREENSHOTS) await page.screenshot({ path: `${process.env.INVITATION_SCREENSHOTS}/inbox-${width}.png` });
+      await inbox.getByRole('button', { name: 'Mute host', exact: true }).click();
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), false);
+      await inbox.getByRole('button', { name: 'Unmute host', exact: true }).click();
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), true);
+      await inbox.getByRole('button', { name: 'Review timebox', exact: true }).click();
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), false);
       await load(1);
       await registry.locator('.invitation-greeting').filter({ hasText: buyer.address.toLowerCase() }).waitFor();
       assert.equal(await registry.getByRole('list', { name: 'Local invitation roster' }).count(), 0);
@@ -177,6 +207,7 @@ try {
       await status.filter({ hasText: 'Read from the pinned registry' }).waitFor();
       assert.equal(await registry.locator('[aria-label="Attendee 1 ENS display identity"]').count(), 1);
       await connect(host.address);
+      assert.equal(await ankh.locator('.invitation-dot').isVisible(), false);
       await load(1);
       await registry.getByRole('list', { name: 'Local invitation roster' }).filter({ hasText: 'Funded (chain)' }).waitFor();
       await registry.getByRole('button', { name: `Refund seat ${buyer.address} in full` }).click();
@@ -208,7 +239,7 @@ try {
       assert.equal(await market.credits(fee.address, ZeroAddress), 30000000000000n);
       assert.deepEqual(errors, []);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      console.log(`${width}px: EVM publish, ENS invite, persistent local roster, ICS/Google export, targeted invite landing, exact USDC join/refund/withdrawal and ETH release passed`);
+      console.log(`${width}px: EVM-signed public invitation, wallet discovery, requests/trust/mute/read badge, calendar exports, USDC join/refund/withdrawal and ETH release passed`);
     } finally { await context.close(); await connection.close(); provider.destroy(); }
   }
 } finally {

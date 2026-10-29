@@ -24,7 +24,7 @@ class DecentCalendar extends HTMLElement {
           </div>
           <div id="calendar-toggle"></div>
           <button id="add-event-btn" class="add-event-button" title="Add Event">+</button>
-          <button id="mint-timeslot-btn" class="mint-button" disabled title="Unavailable until the Base escrow release is validated">Bookings not live</button>
+          <button id="mint-timeslot-btn" class="mint-button" disabled title="NFT minting is not supported. Publish public drafts through their slot details.">NFT minting unavailable</button>
         </div>
         <section id="calendar-identity" aria-label="Calendar owner ENS identity"></section>
         <div id="calendar-wrapper">

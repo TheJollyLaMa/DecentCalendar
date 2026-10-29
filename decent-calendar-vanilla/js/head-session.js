@@ -6,6 +6,9 @@ export function bindCalendarSession(head, {
 }) {
   let generation = 0;
   let previous;
+  const paymentNotice = () => target.DECENT_CONFIG?.booking?.writesEnabled
+    ? 'Small-value Base payment beta; unaudited, mainnet rehearsal not yet recorded. Use tiny amounts. Video meetings are not live.'
+    : 'Paid bookings and video meetings are not live.';
   const reset = () => {
     target._walletAddress = null;
     target._walletSigner = null;
@@ -18,7 +21,7 @@ export function bindCalendarSession(head, {
     const request = ++generation;
     reset();
     if (!state.connected) {
-      report('Local prototype. Connect explicitly to use your calendar; paid bookings and video meetings are not live.');
+      report(`Connect explicitly to use your calendar. ${paymentNotice()}`);
       return;
     }
     try {
@@ -31,7 +34,7 @@ export function bindCalendarSession(head, {
       target._walletAddress = state.address;
       target._walletSigner = signer;
       connected(state.address);
-      report('Base wallet connected. Calendar data is local unless you explicitly publish availability. Paid bookings and video meetings are not live.');
+      report(`Base wallet connected. Calendar data is local unless explicitly published. ${paymentNotice()}`);
     } catch (error) {
       if (request !== generation) return;
       reset();

@@ -13,7 +13,7 @@ export function installBookingUI() {
   const getSession = () => ({ address: window._walletAddress, signer: window._walletSigner });
   let client, generation = 0, pending = false;
   const gate = document.getElementById('booking-registry-gate');
-  gate.textContent = config.writesEnabled ? 'Confirm every transaction in your wallet. Gas is separate.' :
+  gate.textContent = config.writesEnabled ? 'Small-value Base mainnet beta. Independent audit and a complete mainnet rehearsal are not yet recorded. Funds are at risk; keep stakes tiny. Confirm every transaction in your wallet. Gas is separate. Video meetings are not live.' :
     'Transactions are disabled until the reviewed Base deployment is pinned and accepted. No funds or approvals can be requested.';
   async function api() {
     if (!client) {
