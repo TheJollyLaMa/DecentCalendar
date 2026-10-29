@@ -12,14 +12,27 @@ export function installSlotUI({ profiles }) {
   dialog.querySelector('[data-close]').onclick = close;
   dialog.addEventListener('cancel', () => { generation++; });
   const picker = document.getElementById('event-asset');
-  picker.replaceChildren(...ASSETS.map(asset => new Option(`${asset.symbol} - Base`, asset.id)));
+  picker.replaceChildren(...ASSETS.map((asset, index) => {
+    const card = document.createElement('label');
+    card.className = 'asset-card';
+    const input = document.createElement('input');
+    Object.assign(input, { type: 'radio', name: 'event-asset', value: asset.id, checked: index === 0 });
+    const text = document.createElement('span');
+    const symbol = document.createElement('strong');
+    symbol.textContent = asset.symbol;
+    const detail = document.createElement('small');
+    detail.textContent = `on Base · ${asset.decimals} decimals`;
+    text.append(symbol, detail);
+    card.append(input, assetImage(asset), text);
+    return card;
+  }));
   const rateIcon = document.getElementById('event-asset-icon');
   const updateAsset = () => {
-    const asset = getAsset(picker.value);
+    const asset = getAsset(picker.querySelector('input:checked').value);
     rateIcon.replaceChildren(assetImage(asset));
-    document.getElementById('event-rate').step = asset.decimals === 6 ? '0.000001' : 'any';
+    document.getElementById('event-rate-symbol').textContent = `(${asset.symbol} per hour, up to ${asset.decimals} decimals)`;
   };
-  picker.onchange = updateAsset;
+  picker.addEventListener('change', updateAsset);
   updateAsset();
   const label = (name, value) => {
     const line = document.createElement('p');

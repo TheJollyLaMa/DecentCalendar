@@ -3,8 +3,9 @@
    Defines window.on* hooks and wires all modal event listeners.
    Delegates to calendar.js global functions for FullCalendar logic. */
 
-import { getAsset, parseAmount } from '../assets.js';
-import { localTimeZone, validTimeZone } from '../timezones.js';
+import { getAsset, parseAmount, slotQuote, formatAmount } from '../assets.js';
+import { localTimeZone, validTimeZone, counterpartTime } from '../timezones.js';
+import { installWhenPicker, durationLabel } from '../when-picker.js';
 
 class DecentCalendar extends HTMLElement {
   connectedCallback() {
@@ -46,14 +47,24 @@ class DecentCalendar extends HTMLElement {
     document.getElementById('add-event-btn').addEventListener('click', () => this._openAddEventModal());
     document.getElementById('save-event-btn').addEventListener('click', () => this._handleAddEvent());
     document.getElementById('cancel-event-btn').addEventListener('click', () => this._closeAddEventModal());
-
-    // Keep public/private checkboxes in sync
-    document.getElementById('event-public').addEventListener('change', (e) => {
-      document.getElementById('event-private').checked = !e.target.checked;
+    this._when = installWhenPicker({ onChange: () => this._updateEventSummary() });
+    window.openAddEventPanel = range => this._openAddEventModal(range);
+    const panel = document.getElementById('add-event-modal');
+    panel.addEventListener('click', event => { if (event.target === panel) this._closeAddEventModal(); });
+    panel.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !this._when.isOpen()) this._closeAddEventModal();
     });
-    document.getElementById('event-private').addEventListener('change', (e) => {
-      document.getElementById('event-public').checked = !e.target.checked;
+    panel.addEventListener('input', () => this._updateEventSummary());
+    panel.addEventListener('change', () => this._updateEventSummary());
+    for (const step of panel.querySelectorAll('.step')) step.addEventListener('click', () => {
+      const input = document.getElementById(step.dataset.target);
+      input.value = String(Math.min(50, Math.max(1, (Number(input.value) || 1) + Number(step.dataset.step))));
+      const min = document.getElementById('event-min-attendees'), max = document.getElementById('event-max-attendees');
+      if (Number(min.value) > Number(max.value)) (input === min ? max : min).value = input.value;
+      this._updateEventSummary();
     });
+    const zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+    document.getElementById('event-timezone-list').replaceChildren(...zones.map(zone => new Option(zone)));
 
     // Mint Timeslot Modal
     document.getElementById('mint-timeslot-btn').addEventListener('click', () => this._openMintModal());
@@ -77,29 +88,59 @@ class DecentCalendar extends HTMLElement {
 
   // ---- Add Event ----
 
-  _openAddEventModal() {
+  _openAddEventModal(range) {
     if (!window._walletAddress) {
       alert('Please connect your wallet first.');
       return;
     }
     document.getElementById('event-title').value = '';
-    document.getElementById('event-start').value = '';
-    document.getElementById('event-end').value = '';
+    if (range?.start) this._when.setRange(range.start, range.end);
+    else this._when.reset();
     document.getElementById('event-rate').value = '';
-    document.getElementById('event-asset').value = 'base:eth';
-    document.getElementById('event-asset').dispatchEvent(new Event('change'));
+    const eth = document.querySelector('#event-asset input[value="base:eth"]');
+    if (eth) { eth.checked = true; eth.dispatchEvent(new Event('change', { bubbles: true })); }
     document.getElementById('event-public').checked = true;
-    document.getElementById('event-private').checked = false;
     document.getElementById('event-hardline').checked = false;
-    document.getElementById('event-pricing').value = 'per-head';
+    document.getElementById('event-pricing-per-head').checked = true;
     document.getElementById('event-min-attendees').value = '1';
     document.getElementById('event-max-attendees').value = '1';
     document.getElementById('event-timezone').value = localTimeZone();
+    this._lastFocus = document.activeElement;
     document.getElementById('add-event-modal').classList.remove('hidden');
+    this._updateEventSummary();
+    document.getElementById('event-title').focus();
   }
 
   _closeAddEventModal() {
+    this._when?.close();
     document.getElementById('add-event-modal').classList.add('hidden');
+    calendarInstance?.unselect();
+    this._lastFocus?.focus?.();
+  }
+
+  _updateEventSummary() {
+    const summary = document.getElementById('event-summary');
+    if (!summary || !this._when?.range.start) return;
+    const { start, end } = this._when.range;
+    const minutes = Math.round((end - start) / 60000);
+    const parts = [`${durationLabel(minutes)} of your time`];
+    const assetId = document.querySelector('#event-asset input:checked')?.value;
+    const rateAmount = document.getElementById('event-rate').value.trim();
+    const split = document.getElementById('event-pricing-split').checked;
+    const min = Number(document.getElementById('event-min-attendees').value) || 1;
+    const max = Number(document.getElementById('event-max-attendees').value) || 1;
+    if (assetId && rateAmount) {
+      try {
+        const { asset, gross } = slotQuote({ assetId, rateAmount, start: start.toISOString(), end: end.toISOString() });
+        const total = `${formatAmount(gross, asset.decimals)} ${asset.symbol}`;
+        parts.push(split ? `${total} shared by ${min === max ? max : `${min}-${max}`} attendee${max > 1 ? 's' : ''}` : `${total} per attendee`);
+      } catch (error) { parts.push(error.message); }
+    } else parts.push('set a rate (0 for free)');
+    parts.push(`${min === max ? max : `${min}-${max}`} seat${max > 1 ? 's' : ''}`);
+    if (document.getElementById('event-hardline').checked) parts.push('hardline end');
+    const zone = document.getElementById('event-timezone').value.trim();
+    if (zone && zone !== localTimeZone() && validTimeZone(zone)) parts.push(counterpartTime(start, end, zone, 'that zone'));
+    summary.textContent = parts.join(' · ');
   }
 
   async _handleAddEvent() {
@@ -107,12 +148,12 @@ class DecentCalendar extends HTMLElement {
     const start = document.getElementById('event-start').value;
     const end = document.getElementById('event-end').value;
     const rateAmount = document.getElementById('event-rate').value.trim() || '0';
-    const asset = getAsset(document.getElementById('event-asset').value);
+    const asset = getAsset(document.querySelector('#event-asset input:checked')?.value);
     try { parseAmount(rateAmount, asset.decimals); }
     catch (error) { alert(error.message); return; }
     const hourlyRate = Number(rateAmount);
     const isPublic = document.getElementById('event-public').checked;
-    const pricing = document.getElementById('event-pricing').value;
+    const pricing = document.querySelector('input[name="event-pricing"]:checked').value;
     const minAttendees = Number(document.getElementById('event-min-attendees').value);
     const maxAttendees = Number(document.getElementById('event-max-attendees').value);
     const timezone = document.getElementById('event-timezone').value.trim();

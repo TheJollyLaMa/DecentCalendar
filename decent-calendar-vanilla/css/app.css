@@ -123,7 +123,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid #0ff; outline-off
 .asset-icon { display: inline-block; width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 5px; }
 .slot-avatar { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 4px; }
 .slot-identity { display: block; font-size: 11px; opacity: .9; overflow: hidden; text-overflow: ellipsis; }
-#event-asset { padding: 7px; color: white; background: #111; border: 1px solid #0ff; max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .rabbit-glyph { animation: none; }
 }

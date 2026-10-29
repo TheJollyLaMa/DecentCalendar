@@ -112,51 +112,99 @@
 
   <!-- Add Event Modal -->
   <div id="add-event-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Add New Event</h3>
-      <label>
-        Event Title:
-        <input type="text" id="event-title" name="title" placeholder="e.g. IT Consultation" />
+    <div class="modal-content event-panel" role="dialog" aria-modal="true" aria-labelledby="event-panel-title">
+      <header class="event-panel-head">
+        <h3 id="event-panel-title">⏳ Offer your time</h3>
+        <p>A local draft. Saving uploads nothing and spends nothing.</p>
+      </header>
+
+      <label class="panel-field">
+        <span class="panel-label">What</span>
+        <input type="text" id="event-title" name="title" placeholder="e.g. Solidity pairing, tarot reading, IT consult" maxlength="120" />
       </label>
-      <label>
-        Start Time:
-        <input type="datetime-local" id="event-start" name="start" />
-      </label>
-      <label>
-        End Time:
-        <input type="datetime-local" id="event-end" name="end" />
-      </label>
-      <label>
-        Slot currency (Base, preview only):
-        <select id="event-asset" name="asset"></select><span id="event-asset-icon"></span>
-      </label>
-      <label>
-        Hourly rate (exact decimal; per attendee, or the group total when split):
-        <input type="text" inputmode="decimal" id="event-rate" name="hourlyRate" placeholder="0.05" />
-      </label>
-      <label>
-        Pricing:
-        <select id="event-pricing">
-          <option value="per-head">Per head - each attendee pays the price</option>
-          <option value="split">Split - attendees share the total</option>
-        </select>
-      </label>
-      <label>Minimum attendees (plus you) <input type="number" id="event-min-attendees" min="1" max="50" step="1" value="1" /></label>
-      <label>Maximum attendees <input type="number" id="event-max-attendees" min="1" max="50" step="1" value="1" /></label>
-      <label>Your timezone (published with public offers) <input type="text" id="event-timezone" autocomplete="off" /></label>
-      <label><input type="checkbox" id="event-hardline" /> Request a fixed-end meeting hardline (final five-minute warning; meetings not live)</label>
-      <div class="checkbox-group">
-        <label>
-          <input type="checkbox" id="event-public" name="isPublic" checked />
-          Public Event
+
+      <fieldset class="panel-section when-section">
+        <legend class="panel-label">When</legend>
+        <input type="hidden" id="event-start" name="start" />
+        <input type="hidden" id="event-end" name="end" />
+        <div class="when-row">
+          <button type="button" id="event-date-trigger" class="picker-trigger date-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="when-popover">
+            <span class="picker-trigger-kicker">Day</span><span id="event-date-label"></span>
+          </button>
+          <button type="button" id="event-start-trigger" class="picker-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="when-popover">
+            <span class="picker-trigger-kicker">Start</span><span id="event-start-label"></span>
+          </button>
+          <span class="when-arrow" aria-hidden="true">→</span>
+          <button type="button" id="event-end-trigger" class="picker-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="when-popover">
+            <span class="picker-trigger-kicker">End</span><span id="event-end-label"></span>
+          </button>
+        </div>
+        <div id="when-popover" class="picker-popover" role="dialog" hidden></div>
+        <div id="event-duration-chips" class="chip-row" role="group" aria-label="Duration">
+          <button type="button" class="chip" data-minutes="15">15m</button>
+          <button type="button" class="chip" data-minutes="30">30m</button>
+          <button type="button" class="chip" data-minutes="45">45m</button>
+          <button type="button" class="chip" data-minutes="60">1h</button>
+          <button type="button" class="chip" data-minutes="90">1h 30m</button>
+          <button type="button" class="chip" data-minutes="120">2h</button>
+          <span class="duration-readout">Length <strong id="event-duration-label"></strong></span>
+        </div>
+        <label class="panel-field tz-field">
+          <span class="panel-sublabel">Your timezone (published with public offers)</span>
+          <input type="text" id="event-timezone" autocomplete="off" list="event-timezone-list" spellcheck="false" />
+          <datalist id="event-timezone-list"></datalist>
         </label>
-        <label>
-          <input type="checkbox" id="event-private" name="isPrivate" />
-          Private Event
+      </fieldset>
+
+      <fieldset class="panel-section">
+        <legend class="panel-label">Price</legend>
+        <div id="event-asset" class="asset-cards" role="radiogroup" aria-label="Slot currency on Base"></div>
+        <label class="panel-field rate-field">
+          <span class="panel-sublabel">Hourly rate <span id="event-rate-symbol"></span></span>
+          <span class="rate-input"><span id="event-asset-icon"></span><input type="text" inputmode="decimal" id="event-rate" name="hourlyRate" placeholder="0.05" autocomplete="off" /></span>
         </label>
-      </div>
-      <button id="save-event-btn">Add Event</button>
-      <button id="cancel-event-btn">Cancel</button>
+        <div class="segmented" role="radiogroup" aria-label="Pricing">
+          <label><input type="radio" name="event-pricing" id="event-pricing-per-head" value="per-head" checked /><span><strong>Per head</strong><small>each attendee pays the rate</small></span></label>
+          <label><input type="radio" name="event-pricing" id="event-pricing-split" value="split" /><span><strong>Split</strong><small>attendees share the rate</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="panel-section">
+        <legend class="panel-label">Who</legend>
+        <div class="stepper-row">
+          <div class="stepper">
+            <label for="event-min-attendees" class="panel-sublabel">Minimum attendees (plus you)</label>
+            <div class="stepper-control">
+              <button type="button" class="step" data-step="-1" data-target="event-min-attendees" aria-label="Fewer minimum attendees">−</button>
+              <input type="number" id="event-min-attendees" min="1" max="50" step="1" value="1" />
+              <button type="button" class="step" data-step="1" data-target="event-min-attendees" aria-label="More minimum attendees">+</button>
+            </div>
+          </div>
+          <div class="stepper">
+            <label for="event-max-attendees" class="panel-sublabel">Maximum attendees</label>
+            <div class="stepper-control">
+              <button type="button" class="step" data-step="-1" data-target="event-max-attendees" aria-label="Fewer maximum attendees">−</button>
+              <input type="number" id="event-max-attendees" min="1" max="50" step="1" value="1" />
+              <button type="button" class="step" data-step="1" data-target="event-max-attendees" aria-label="More maximum attendees">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="segmented" role="radiogroup" aria-label="Visibility">
+          <label><input type="radio" name="event-visibility" id="event-public" value="public" checked /><span><strong>🌐 Public</strong><small>can be published as availability</small></span></label>
+          <label><input type="radio" name="event-visibility" id="event-private" value="private" /><span><strong>🔒 Private</strong><small>stays in this browser</small></span></label>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="event-hardline" role="switch" />
+          <span class="switch-track" aria-hidden="true"></span>
+          <span><strong>Hardline</strong> - the meeting ends exactly at the slot's end, with a five-minute wrap-up warning <small>(meetings not live yet)</small></span>
+        </label>
+      </fieldset>
+
+      <p id="event-summary" class="event-summary" aria-live="polite"></p>
+      <footer class="event-panel-actions">
+        <button type="button" id="cancel-event-btn" class="ghost">Cancel</button>
+        <button type="button" id="save-event-btn" class="primary">Add to my calendar</button>
+      </footer>
     </div>
   </div>
 

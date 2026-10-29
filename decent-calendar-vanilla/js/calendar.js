@@ -21,6 +21,35 @@ function showRegistrySlot(slot) {
   });
   refreshCalendar();
   calendarInstance?.gotoDate(new Date(Number(slot.start) * 1000));
+  scrollCalendarTo(new Date(Number(slot.start) * 1000));
+}
+
+let calendarScrollTarget = null;
+
+/** Bring a moment (default: now) into view, an hour of context above it. */
+function scrollCalendarTo(moment = new Date()) {
+  calendarScrollTarget = moment;
+  requestAnimationFrame(() => {
+    if (!calendarInstance || !calendarScrollTarget) return;
+    const hour = Math.max(0, calendarScrollTarget.getHours() - 1);
+    calendarScrollTarget = null;
+    calendarInstance.scrollToTime({ hours: hour, minutes: 0 });
+  });
+}
+
+function calendarHeight() {
+  return Math.round(Math.min(Math.max(window.innerHeight * 0.82, 520), 980));
+}
+
+function dayHeaderContent(arg) {
+  const weekday = document.createElement('span');
+  weekday.className = 'fc-dow';
+  weekday.textContent = arg.date.toLocaleDateString(undefined, { weekday: arg.view.type === 'timeGridDay' ? 'long' : 'short' });
+  if (arg.view.type === 'dayGridMonth') return { domNodes: [weekday] };
+  const date = document.createElement('span');
+  date.className = 'fc-dom';
+  date.textContent = String(arg.date.getDate());
+  return { domNodes: [weekday, date] };
 }
 
 /**
@@ -39,6 +68,28 @@ function initCalendar() {
       right: 'dayGridMonth,timeGridWeek,timeGridDay',
     },
     slotDuration: '00:15:00',
+    slotLabelInterval: '01:00',
+    nowIndicator: true,
+    scrollTime: `${String(Math.max(0, new Date().getHours() - 1)).padStart(2, '0')}:00:00`,
+    dayHeaderContent,
+    datesSet: () => scrollCalendarTo(calendarScrollTarget || new Date()),
+    selectable: true,
+    selectMirror: true,
+    select: info => {
+      const now = Date.now(), quarter = 15 * 60000;
+      let start = info.start, end = info.end;
+      if (info.allDay) {
+        start = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate(), 10);
+        if (new Date(now).toDateString() === info.start.toDateString()) start = new Date(Math.ceil(now / quarter) * quarter);
+        end = new Date(start.getTime() + 3600000);
+      }
+      if (!window._walletAddress || end.getTime() <= now) {
+        calendarInstance.unselect();
+        return;
+      }
+      window.openAddEventPanel?.({ start, end });
+    },
+    windowResize: () => calendarInstance.setOption('height', calendarHeight()),
     events: getVisibleEvents(),
     eventClick: handleEventClick,
     eventContent: info => window.renderSlotContent
@@ -54,7 +105,7 @@ function initCalendar() {
       borderColor: eventData.borderColor || undefined,
       classNames: eventData.classNames || ['public-event'],
     }),
-    height: 'auto',
+    height: calendarHeight(),
   });
 
   calendarInstance.render();

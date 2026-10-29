@@ -101,10 +101,11 @@ try {
       const iso = value => new Date(Number(value) * 1000).toISOString();
       await page.locator('#add-event-btn').click();
       assert.equal(await page.locator('#event-timezone').inputValue(), 'UTC');
+      // Same path as drag-selecting a range on the grid; keeps the chain-aligned seconds.
+      await page.evaluate(([from, to]) => window.openAddEventPanel({ start: from, end: to }), [iso(start), iso(end)]);
+      assert.equal(await page.locator('#event-start').inputValue(), iso(start).slice(0, 19).replace(/:00$/, ''));
       await page.locator('#event-title').fill('Learn together');
-      await page.locator('#event-start').fill(iso(start).slice(0, 19));
-      await page.locator('#event-end').fill(iso(end).slice(0, 19));
-      await page.locator('#event-asset').selectOption('base:usdc');
+      await page.locator('#event-asset input[value="base:usdc"]').check();
       await page.locator('#event-rate').fill('1.01');
       await page.locator('#event-max-attendees').fill('2');
       await page.locator('#event-timezone').fill('America/Denver');
