@@ -1,5 +1,6 @@
 import { profileImage } from './ens-profile.js';
 import { calendarICS, googleCalendarLink, timeboxLink, invitationRecipient, invitationState, createInvitationStore, shareInvitation } from './invitations.js';
+import { PREFERENCES } from './invitation-inbox.js';
 
 export function installInvitationUI({ container, slot, registry, account, profiles, isCurrent }) {
   const section = document.createElement('section');
@@ -70,7 +71,20 @@ export function installInvitationUI({ container, slot, registry, account, profil
     const roster = document.createElement('ul');
     roster.setAttribute('aria-label', 'Local invitation roster');
     const preview = document.createElement('div');
-    section.append(label, consent);
+    const preferenceLabel = document.createElement('label'), preference = document.createElement('select');
+    preferenceLabel.textContent = 'Seat preference (request only; not enforced)';
+    preference.id = 'invitation-preference';
+    preference.replaceChildren(...PREFERENCES.map((text, index) => new Option(text, String(index))));
+    preferenceLabel.append(preference);
+    section.append(label, consent, preferenceLabel);
+    action('Send public Base invitation', async () => {
+      const address = await profiles.address(input.value);
+      if (!isCurrent() || account.toLowerCase() !== window._walletAddress?.toLowerCase()) return;
+      if (!window.confirm(`Publish host ${slot.host}, recipient ${address} and timebox ${slot.id} on Base forever? Gas is required. ${PREFERENCES[Number(preference.value)]}. No seat is reserved or restricted.`)) return;
+      message.textContent = 'Confirm the invitation in your wallet, then wait for its Base receipt.';
+      const hash = await window.DCalInvitationInbox.send(slot.id, address, Number(preference.value));
+      if (isCurrent()) message.textContent = `Public invitation confirmed: ${hash}. Recipient can discover it in the right-ankh inbox. It remains a request, not a held seat.`;
+    });
     let store;
     const renderRoster = () => {
       roster.replaceChildren();

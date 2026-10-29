@@ -90,7 +90,7 @@ test('ENS memoization expires, refreshes and evicts failed lookups instead of hi
   assert.equal(calls, 5);
 });
 test('tutorial progress is bounded and distinguishes complete/replay from resume', () => {
-  assert.equal(STEPS.length, 11);
+  assert.equal(STEPS.length, 12);
   const values = new Map();
   const storage = { getItem: key => values.get(key) };
   assert.deepEqual(readProgress(storage), { index: 0, completed: false });

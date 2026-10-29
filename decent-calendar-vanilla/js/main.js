@@ -4,6 +4,7 @@ import { installProfiles } from './profile-ui.js';
 import { installTutorial } from './tutorial.js';
 import { installSlotUI } from './slot-ui.js';
 import { installBookingUI } from './booking-ui.js';
+import { installInvitationInbox } from './invitation-inbox.js';
 import './components/Calendar.js';
 
 const report = message => { document.getElementById('calendar-status').textContent = message; };
@@ -25,11 +26,14 @@ window.DCalProfiles = identity.profiles;
 installSlotUI(identity);
 installTutorial();
 installBookingUI();
+const inbox = installInvitationInbox();
 bindCalendarSession(DecentHead, {
   connected: () => {
     loadAndRenderMyEvents();
+    inbox.connected();
   },
   disconnected: () => {
+    inbox.disconnected();
     clearCalendarEvents();
     closeMeetingRoom();
     document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden'));

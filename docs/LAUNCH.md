@@ -4,9 +4,11 @@
 
 The White Rabbit tutorial, ENS-enriched right-ankh profile and calendar
 identity, exact ETH/USDC agreement previews, and existing deliberate storage
-controls, plus the release-gated registry UI. These require only the existing
-GitHub Pages deployment. The live config has empty registry address/code hash
-and `writesEnabled: false`; no payment or approval can be requested.
+controls, plus the public invitation inbox and small-value Base booking beta.
+The live config pins the booking and invitation registry addresses/runtime
+hashes. `writesEnabled: true` is explicitly approved by the steward before
+independent audit and a complete mainnet rehearsal. UI and tutorial warn of
+this risk. Do not treat passing local-EVM tests as mainnet payment acceptance.
 No Discord integration or OAuth credentials are needed.
 
 The old Ommm/SmartHome decorations are removed from the runtime and Pages
@@ -73,10 +75,41 @@ Deployed 2026-10-29 from DecentAgency.eth with `npm run deploy:booking`:
 block 53221866). Runtime hash
 `0xba6aecb43102ac28b8ba3069587798e6a2746bc52312553fe16d24e310e6628d`;
 Sourcify exact match for creation and runtime code. The app pins it with
-`writesEnabled: false`. Next: a minimal real rehearsal (create, join,
-release, host refund and withdraw with a tiny USDC timebox), then enable
-writes. Deployment preceded an independent human audit at the steward's
+`writesEnabled: true` at the steward's explicit direction on 2026-10-29.
+Still required: a minimal real rehearsal (create, join, release, host refund
+and withdraw with tiny USDC timeboxes). Deployment preceded an independent human audit at the steward's
 direction; keep stakes small until that review is done.
+
+## Public invitation registry
+
+`DCalInvitations` (`dcal-invitations-1`) was deployed by DecentAgency.eth on
+Base at `0xde00A0B54FB76DC453B3A68522c592617430556c`, block 53243136,
+transaction `0xf4803d4686eaa368087384cde9a7b90cc2ec7b460569c04f7a013c5d0914c82e`.
+It immutably reads the existing booking registry. Deployment manifest and
+standard compiler input are under `docs/deployments/base-dcal-invitations-1*`.
+Sourcify reports exact creation and runtime matches:
+https://repo.sourcify.dev/contracts/full_match/8453/0xde00A0B54FB76DC453B3A68522c592617430556c/
+Automatic Etherscan propagation reported a daily source-submission limit;
+no Basescan verification is claimed.
+
+The host alone may invite up to 200 distinct recipients per timebox before
+start; one recipient/timebox record is revised on re-invite rather than duplicated.
+The host can withdraw an invitation using `withdrawInvitation(key)` (contract
+operation; not yet exposed as an inbox button). The record/event history remains
+public forever. The contract stores no messages, holds no funds, grants no
+meeting rights, and never holds or restricts seats. Preferences are requests.
+
+The inbox queries a recipient-indexed, newest-first bounded page of 50 records;
+Load older checks subsequent pages. Badges reflect loaded active, unseen
+revisions from locally trusted, unmuted hosts only. They are not seat-availability
+proofs. Refreshing timebox details checks the actual booking state.
+
+Deploy tooling: run `node --env-file=<ignored-env-path> scripts/deploy-invitations.mjs`
+from this repo, using the existing DecentAgency.eth key only after approval.
+The script checks Base, pinned booking code and deployer, prints gas cost,
+requires typed DEPLOY, checks runtime/version/booking after two confirmations,
+and writes the manifest and pinned config. Clear the key immediately afterward.
+Never deploy again for an already pinned registry without an explicit migration.
 
 ## Contract build and remaining checks
 

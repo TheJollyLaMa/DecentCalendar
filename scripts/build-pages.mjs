@@ -14,6 +14,7 @@ const runtime = [
   'js/assets.js', 'js/ens-profile.js', 'js/profile-ui.js', 'js/slot-ui.js', 'js/tutorial.js',
   'js/booking-client.js', 'js/booking-ui.js', 'js/timezones.js', 'js/when-picker.js',
   'js/invitations.js', 'js/invitation-ui.js',
+  'js/invitation-inbox.js',
   'vendor/decent-head/2.0.0',
 ];
 
