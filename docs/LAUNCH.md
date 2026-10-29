@@ -148,9 +148,11 @@ steward.
 
 Copy `.env.example` to `.env` (gitignored, `chmod 600`) and fill it in
 locally. Never commit it or paste a key into chat, issues or Pages.
-`DEPLOYER_PRIVATE_KEY` should be a **fresh wallet holding only a little Base
-ETH**; it receives no powers in the contract, and the script refuses to sign
-with the fee-recipient/owner address. Then run:
+`DEPLOYER_PRIVATE_KEY` is the deploying wallet; it needs a little Base ETH
+and receives no powers in the contract. Deploying from DecentAgency.eth is
+supported and gives clear on-chain provenance, but that key also controls the
+fee credits and token allowlist, so clear it from `.env` right after
+deploying. Then run:
 
 ```sh
 npm run deploy:booking

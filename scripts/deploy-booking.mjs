@@ -54,8 +54,8 @@ const request = new FetchRequest(baseRpc); request.timeout = 30000;
 const provider = new JsonRpcProvider(request, 8453, { staticNetwork: true });
 try {
   const deployer = new Wallet(key.startsWith('0x') ? key : `0x${key}`, provider);
-  if (getAddress(deployer.address) === getAddress(feeRecipient)) {
-    throw new Error('Use a fresh deployer wallet, not the DecentAgency.eth fee/owner key. The deployer gets no contract powers.');
+  if (getAddress(deployer.address) === getAddress(feeRecipient) || getAddress(deployer.address) === getAddress(owner)) {
+    console.warn('Deploying from the DecentAgency.eth fee/owner wallet. Its key controls credits and the token allowlist: clear it from .env after deploying.');
   }
   // Rechecks Base, canonical USDC and the live DecentAgency.eth record against the .env addresses.
   const plan = await prepareDeployment({ feeRecipient, owner, baseRpc, ensRpc });
