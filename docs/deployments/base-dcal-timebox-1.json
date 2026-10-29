@@ -1,0 +1,25 @@
+{
+  "contract": "DCalBooking",
+  "version": "dcal-timebox-1",
+  "chainId": 8453,
+  "address": "0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A",
+  "transaction": "0xf13918bf3c053bf074081577ae13758ba1b8adffe62d3c837d40fc547bd4b8ac",
+  "block": 53221866,
+  "deployer": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "deployedAt": "2026-10-29T00:18:04.620Z",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceHash": "0xc77c5a2f8a3b1fbca84726e64e92fea2193af91350d2dd08ff88cb0063fa3bcf",
+  "creationCodeHash": "0xd3bca8bbdd2a65432a42f5e1760d45a415361a50efa31fdbda53d1a59a59c785",
+  "constructorArguments": [
+    "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+    "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+    [
+      "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    ]
+  ],
+  "enabledAssets": [
+    "ETH (native, always allowed)",
+    "USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  ],
+  "runtimeCodeHash": "0xba6aecb43102ac28b8ba3069587798e6a2746bc52312553fe16d24e310e6628d"
+}

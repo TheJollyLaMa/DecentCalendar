@@ -35,7 +35,8 @@ were deployed by this integration.
   The Bookings / recover / withdraw control reports an undeployed registry
   explicitly, never as an empty booking. Every read verifies the pinned Base
   runtime hash and policy; transactions additionally require the release gate
-  and current Base wallet. No registry address is configured on the live site.
+  and current Base wallet. The live site pins the Base deployment below with
+  `writesEnabled: false` until the live rehearsal is accepted.
 - A recovered chain slot can be shown as a **checked calendar snapshot**,
   enriched with host/attendee ENS display identities. Clicking it re-reads the
   registry; artwork and local/imported fields never authorize payment.
@@ -171,6 +172,16 @@ RPC. Its OP Isthmus simulation is token-integration evidence, not proof of
 current production gas pricing, finality or meeting reliability.
 The shared Head respects reduced motion; the existing animated Calendar
 background is not part of that accessibility guarantee.
+
+### Base deployment
+
+`DCalBooking` `dcal-timebox-1` is deployed on Base mainnet at
+[`0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A`](https://basescan.org/address/0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A)
+by DecentAgency.eth (tx `0xf13918bf…b8ac`, block 53221866). Fee recipient and
+token-allowlist owner are DecentAgency.eth; ETH and canonical USDC are enabled.
+Source is an exact match on
+[Sourcify](https://repo.sourcify.dev/contracts/full_match/8453/0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A/).
+Record and standard JSON input: [docs/deployments](docs/deployments/).
 
 ### Remaining release gates
 

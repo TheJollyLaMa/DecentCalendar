@@ -65,6 +65,19 @@ gross, 0.04545 USDC development and 1.46955 USDC host. Gross rounds up to
 the smallest asset unit; fee rounds down. A one-base-unit settlement has
 zero fee. Never use floating point to determine transfer amounts.
 
+## Base deployment record
+
+Deployed 2026-10-29 from DecentAgency.eth with `npm run deploy:booking`:
+`0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A` (tx
+`0xf13918bf3c053bf074081577ae13758ba1b8adffe62d3c837d40fc547bd4b8ac`,
+block 53221866). Runtime hash
+`0xba6aecb43102ac28b8ba3069587798e6a2746bc52312553fe16d24e310e6628d`;
+Sourcify exact match for creation and runtime code. The app pins it with
+`writesEnabled: false`. Next: a minimal real rehearsal (create, join,
+release, host refund and withdraw with a tiny USDC timebox), then enable
+writes. Deployment preceded an independent human audit at the steward's
+direction; keep stakes small until that review is done.
+
 ## Contract build and remaining checks
 
 `contracts/DCalBooking.sol` is a new candidate registry implementing those

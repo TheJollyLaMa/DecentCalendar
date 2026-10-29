@@ -31,9 +31,9 @@ window.DECENT_CONFIG = {
   ],
   tokenAddress: '',
   booking: {
-    address: '',
-    runtimeCodeHash: '',
-    feeRecipient: '',
+    address: '0x56844e14d2e29fb8d9Df04B1F19fB9d732C5063A',
+    runtimeCodeHash: '0xba6aecb43102ac28b8ba3069587798e6a2746bc52312553fe16d24e310e6628d',
+    feeRecipient: '0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a',
     writesEnabled: false,
   },
   contractAddresses: {

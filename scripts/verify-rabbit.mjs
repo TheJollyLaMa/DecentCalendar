@@ -35,7 +35,7 @@ try {
     page.on('request', request => requests.push(request.url()));
     await page.route('**/decent.config.js', async route => {
       const response = await route.fetch();
-      await route.fulfill({ response, body: `${await response.text()}\nwindow.DECENT_CONFIG.ens.enabled = false;` });
+      await route.fulfill({ response, body: `${await response.text()}\nwindow.DECENT_CONFIG.ens.enabled = false;\n// Exercise the unpinned gate offline, independent of the live deployment.\nwindow.DECENT_CONFIG.booking = { address: '', runtimeCodeHash: '', feeRecipient: '', writesEnabled: false };` });
     });
     await page.goto(url);
     await page.waitForFunction(() => window.DCalProfiles && window.openSlotDetails && document.querySelector('.fc'));
