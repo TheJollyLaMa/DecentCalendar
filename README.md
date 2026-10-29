@@ -1,6 +1,36 @@
 # DecentCalendar
 🗓️ A Decent Calendar - another decent creation by TheJollyLaMa to return back some agency to the decent people of 🌎
 
+## Invitations for published timeboxes
+
+For a published timebox, **Invite & remember** offers device sharing (clipboard
+fallback), an `.ics` download, and a Google Calendar template link. Calendar
+exports use the exact UTC interval, include the host timezone, and are static
+snapshots; adding one does not join, pay, reserve a seat, or grant meeting access.
+Check the refreshed Base state for cancellation or other changes.
+
+The connected host can resolve an ENS name or enter a wallet address and create
+a recipient-specific link. The recipient address is visible in that link.
+Creating it sends nothing; the host shares it explicitly. An invite link is
+untrusted routing metadata, **not proof the host sent it**, authorization, or an
+invite-only restriction. The deployed contract still permits anyone to join
+before the start while seats remain. Public payment writes remain gated.
+
+The invitation roster is local to this origin/browser, scoped to Base, registry,
+host and timebox ID. It is not included in calendar backups, public availability
+or IPFS uploads. A matching seat's status comes from the last chain read; refresh
+to reconcile. ENS display failures retain the resolved wallet. No email, Discord
+or wallet notification is sent, and personal notes are not placed in URLs.
+
+Reuse: this adapts DCal's existing `createProfileResolver.address` / `lookup`,
+`profileImage`, `bookingId`, and checked booking snapshots at `b5da459`.
+The Busking action-badge/signed-acknowledgement lead recorded in #31 is not needed
+for this link-only phase; its notification delivery and different escrow terms
+are not imported. No shared package or contract change is introduced.
+Acceptance is exercised by `tests/invitations.test.js` and the existing
+`scripts/verify-booking.mjs` at 1440 and 390 pixels in New York and Tokyo.
+Native Apple/Outlook/Google import still needs a manual receiving-calendar check.
+
 ## First-version build: shared Head foundation
 
 The vanilla app is the active receiving implementation for this work. The
