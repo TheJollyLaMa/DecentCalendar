@@ -2,6 +2,7 @@ import { assetImage, formatAmount } from './assets.js';
 import { createBookingClient, bookingActions, bookingAsset, bookingId, offerFromDraft, seatAmounts, PRICING, SEAT_STATES } from './booking-client.js';
 import { counterpartTime, localTimeZone, validTimeZone } from './timezones.js';
 import { profileImage } from './ens-profile.js';
+import { installInvitationUI } from './invitation-ui.js';
 
 export function installBookingUI() {
   const config = window.DECENT_CONFIG.booking;
@@ -148,6 +149,11 @@ export function installBookingUI() {
       window.showRegistrySlot({ ...fresh, registry: config.address });
       generation++; dialog.close();
     });
+    const invitation = installInvitationUI({
+      container: content, slot, registry: config.address, account: getSession().address,
+      profiles: window.DCalProfiles,
+      isCurrent: () => request === generation && dialog.open,
+    });
     const actions = bookingActions(slot, getSession().address, slot.now);
     const asset = bookingAsset(slot.asset);
     if (actions.join) {
@@ -176,7 +182,7 @@ export function installBookingUI() {
           status.textContent = 'Approval confirmed. Review the agreement again, then join separately. Approval alone reserves no seat.';
         }, true);
       }
-      button('Join this timebox', async () => {
+      const joinButton = button('Join this timebox', async () => {
         ready();
         const request = generation;
         await service.join(slot, zone.value.trim());
@@ -184,6 +190,7 @@ export function installBookingUI() {
         await renderBooking(slot.id);
         status.textContent = 'Seat receipt confirmed. Refreshed chain state is shown above.';
       }, true);
+      if (invitation.recipient === getSession().address?.toLowerCase()) joinButton.classList.add('invitation-join');
     }
     const resolve = (text, action) => button(text, async () => {
       if (!window.confirm(`${text}? This submits a Base transaction. Credits require a separate withdrawal.`)) return;

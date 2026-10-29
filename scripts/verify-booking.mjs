@@ -59,7 +59,8 @@ try {
     await market.waitForDeployment();
     const config = { address: await market.getAddress(), feeRecipient: fee.address,
       runtimeCodeHash: keccak256(await provider.getCode(await market.getAddress())), writesEnabled: true };
-    const context = await browser.newContext({ viewport: { width, height: 900 }, timezoneId: 'UTC', reducedMotion: 'reduce' });
+    const timezoneId = width === 1440 ? 'America/New_York' : 'Asia/Tokyo';
+    const context = await browser.newContext({ viewport: { width, height: 900 }, timezoneId, reducedMotion: 'reduce' });
     try {
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(error.message));
@@ -100,10 +101,10 @@ try {
       const start = BigInt(block.timestamp) + 3600n, end = start + 5400n;
       const iso = value => new Date(Number(value) * 1000).toISOString();
       await page.locator('#add-event-btn').click();
-      assert.equal(await page.locator('#event-timezone').inputValue(), 'UTC');
+      assert.equal(await page.locator('#event-timezone').inputValue(), timezoneId);
       // Same path as drag-selecting a range on the grid; keeps the chain-aligned seconds.
       await page.evaluate(([from, to]) => window.openAddEventPanel({ start: from, end: to }), [iso(start), iso(end)]);
-      assert.equal(await page.locator('#event-start').inputValue(), iso(start).slice(0, 19).replace(/:00$/, ''));
+      assert.equal(await page.locator('#event-start').evaluate(input => Date.parse(input.value)), Number(start) * 1000);
       await page.locator('#event-title').fill('Learn together');
       await page.locator('#event-asset input[value="base:usdc"]').check();
       await page.locator('#event-rate').fill('1.01');
@@ -121,10 +122,41 @@ try {
       assert.equal(new URL(permanent).searchParams.get('booking'), '1');
       const created = await market.getSlot(1);
       assert.deepEqual([created.hardline, created.hostTimezone, created.maxAttendees, created.subject], [true, 'America/Denver', 2n, 'Learn together']);
-      await page.goto(permanent);
+      const invitations = registry.getByRole('region', { name: 'Timebox invitations and calendar' });
+      await page.evaluate(address => {
+        window.DCalProfiles.address = async input => {
+          if (input === 'friend.eth') return address;
+          throw new Error('ENS name does not resolve to a wallet address.');
+        };
+        window.DCalProfiles.lookup = async address => ({ address, name: 'friend.eth', warnings: [], avatar: '', banner: '' });
+      }, buyer.address);
+      await invitations.getByRole('textbox', { name: 'Invite by ENS name or wallet address' }).fill('friend.eth');
+      await invitations.getByRole('button', { name: 'Create invitation link' }).click();
+      const inviteLink = await invitations.getByRole('list', { name: 'Local invitation roster' }).getByRole('link').getAttribute('href');
+      assert.equal(new URL(inviteLink).searchParams.get('invite'), buyer.address.toLowerCase());
+      await invitations.filter({ hasText: 'friend.eth' }).waitFor();
+      const downloadPromise = page.waitForEvent('download');
+      await invitations.getByRole('button', { name: 'Download calendar (.ics)' }).click();
+      const download = await downloadPromise;
+      assert.equal(download.suggestedFilename(), 'dcal-timebox-1.ics');
+      const calendar = (await readFile(await download.path(), 'utf8')).replace(/\r\n /g, '');
+      assert.ok(calendar.includes('SUMMARY:Learn together'));
+      assert.ok(calendar.includes('DTSTART:'));
+      assert.ok(!calendar.includes('?booking=1&invite='));
+      const google = new URL(await invitations.getByRole('link', { name: 'Add to Google Calendar' }).getAttribute('href'));
+      assert.equal(google.searchParams.get('text'), 'Learn together');
+      if (process.env.INVITATION_SCREENSHOTS) {
+        await invitations.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: `${process.env.INVITATION_SCREENSHOTS}/invitations-${width}.png` });
+      }
+      // Reload preserves only the host's local invitation list; it is not chain state.
+      await page.goto(inviteLink);
       await status.filter({ hasText: 'Read from the pinned registry' }).waitFor();
       await connect(buyer.address);
       await load(1);
+      await registry.locator('.invitation-greeting').filter({ hasText: buyer.address.toLowerCase() }).waitFor();
+      assert.equal(await registry.getByRole('list', { name: 'Local invitation roster' }).count(), 0);
+      await registry.locator('.invitation-greeting').filter({ hasText: 'not joined' }).waitFor();
       await registry.filter({ hasText: 'for host (America/Denver' }).waitFor();
       await page.locator('#booking-join-timezone').fill('Asia/Tokyo');
       await registry.locator('input[type="checkbox"]').check();
@@ -137,6 +169,7 @@ try {
       await registry.getByRole('button', { name: 'Join this timebox' }).click();
       await status.filter({ hasText: 'Seat receipt confirmed' }).waitFor();
       assert.equal((await market.getSeat(1, buyer.address)).timezone, 'Asia/Tokyo');
+      await registry.locator('.invitation-greeting').filter({ hasText: 'Funded (chain)' }).waitFor();
       await registry.filter({ hasText: 'for them (Asia/Tokyo' }).waitFor();
       assert.equal(await registry.getByRole('button', { name: 'Reclaim my full deposit' }).count(), 0);
       await registry.getByRole('button', { name: 'Show checked slot on calendar' }).click();
@@ -145,6 +178,7 @@ try {
       assert.equal(await registry.locator('[aria-label="Attendee 1 ENS display identity"]').count(), 1);
       await connect(host.address);
       await load(1);
+      await registry.getByRole('list', { name: 'Local invitation roster' }).filter({ hasText: 'Funded (chain)' }).waitFor();
       await registry.getByRole('button', { name: `Refund seat ${buyer.address} in full` }).click();
       await status.filter({ hasText: 'Resolution confirmed' }).waitFor();
       await connect(buyer.address);
@@ -174,7 +208,7 @@ try {
       assert.equal(await market.credits(fee.address, ZeroAddress), 30000000000000n);
       assert.deepEqual(errors, []);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      console.log(`${width}px: actual EVM timebox publish with host timezone, counterpart times, exact USDC approval/join, host refund/withdrawal and post-end ETH release passed`);
+      console.log(`${width}px: EVM publish, ENS invite, persistent local roster, ICS/Google export, targeted invite landing, exact USDC join/refund/withdrawal and ETH release passed`);
     } finally { await context.close(); await connection.close(); provider.destroy(); }
   }
 } finally {
