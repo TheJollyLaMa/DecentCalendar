@@ -6,7 +6,8 @@
     "serve:react": "cd decent-calendar-react-app && npm start",
     "test:escrow": "node --test tests/escrow.test.mjs",
     "test:base-fork": "node --test tests/base-fork.test.mjs",
-    "prepare:booking": "node scripts/prepare-booking-deployment.mjs"
+    "prepare:booking": "node scripts/prepare-booking-deployment.mjs",
+    "deploy:booking": "node --env-file=.env scripts/deploy-booking.mjs"
   },
   "devDependencies": {
     "ethers": "6.16.0",

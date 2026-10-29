@@ -142,7 +142,29 @@ and settings used by the tests and prints constructor arguments, source
 hash, creation-code hash and deployment data. It sends no transaction.
 This artifact is **not permission to sign before independent review**.
 Rebuild after any source change and reconfirm the exact recipient with the
-steward. There is deliberately no command that accepts a private key.
+steward.
+
+### Signing the deployment from a local `.env`
+
+Copy `.env.example` to `.env` (gitignored, `chmod 600`) and fill it in
+locally. Never commit it or paste a key into chat, issues or Pages.
+`DEPLOYER_PRIVATE_KEY` should be a **fresh wallet holding only a little Base
+ETH**; it receives no powers in the contract, and the script refuses to sign
+with the fee-recipient/owner address. Then run:
+
+```sh
+npm run deploy:booking
+```
+
+It re-resolves DecentAgency.eth and rechecks Base, canonical USDC and the
+`.env` addresses, then prints the deployer, balance, gas estimate (about
+2.9M gas) and constructor arguments, and signs only after you type `DEPLOY`.
+After two confirmations it verifies the deployed runtime and policy, writes
+`docs/deployments/base-dcal-timebox-1.json`, and pins `booking` in
+`decent.config.js` with `writesEnabled: false`. With `ETHERSCAN_API_KEY` set
+it also publishes verified source on Basescan; retry later with
+`npm run deploy:booking -- --verify-only 0x...`. Empty the key from `.env`
+when done.
 
 Then the steward uses their wallet on **Base**, funded with enough ETH
 for deployment gas, to deploy the reviewed registry. Constructor arguments
