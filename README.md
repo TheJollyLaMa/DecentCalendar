@@ -1,6 +1,41 @@
 # DecentCalendar
 🗓️ A Decent Calendar - another decent creation by TheJollyLaMa to return back some agency to the decent people of 🌎
 
+## Versioned Supporter edition — preparing, not for sale yet
+
+Open the title's **About** dialog for the DecentCalendar Supporter card.
+It explicitly reports **Unavailable — preparing**: no mint, token ID, listing ID
+or checkout is configured. Calendar does not connect a wallet, approve USDC or
+sign from this card. Existing tiny-value booking payments are a separate beta.
+The proposed edition is **1,000 copies at 10 USDC each** on Base (8453), using
+the existing DecentNFT and community escrow; this is not a feature unlock,
+booking, ownership share or guaranteed resale investment.
+
+The pinned DecentHead workflow prepares artwork, metadata, an entire tagged
+source archive and the tagged `decent-calendar-vanilla/` static site. It does
+not mint, escrow, change ENS or transact. Preparation needs the repository's
+`PINATA_JWT` secret, currently missing. Optional announcements remain disabled
+unless `SUPPORTER_DISCORD_ENABLED=true` and `DISCORD_SUPPORTER_WEBHOOK` is set.
+No application secret is needed to serve the public site.
+
+After steward-approved mint/listing receipts have passed the pinned kit's Base
+verification (including at least 12 confirmations, stock and price), a reviewed
+follow-up may populate `decent-calendar-vanilla/js/supporter-release.js`.
+Its receipt-backed object must include `tag`, `sourceCommit`, `chainId`,
+`quantity`, `priceUSDC`, `nftContract`, `escrow`, decimal-string `tokenId` and
+`listingId`, `mintTxHash`, `confirmations` and the verified `purchaseUrl`.
+The card fails closed on missing/malformed data and only permits the canonical
+HTTPS `https://thejollylama.github.io/DecentHead/supporter/buy.html` route bound
+to Base, this escrow, the listing and the exact USDC price. That external
+checkout—not Calendar—rechecks live inventory and handles signing. The card's
+shape checks are not independent on-chain receipt verification; never fill the
+object with unverified evidence. Keep `SUPPORTER_RELEASE = null` until then.
+An immutable pre-mint tag/IPFS snapshot intentionally remains “preparing”;
+update the current site only after receipt review, without moving that tag.
+
+See [v0.1.0 readiness notes](docs/RELEASE-v0.1.0.md) for precise shipped scope,
+all open issue/branch dispositions, risks, hosting and the steward checklist.
+
 ## Invitations for published timeboxes
 
 The right ankh's **Invitations** menu discovers host-signed public invitations

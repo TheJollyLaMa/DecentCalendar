@@ -15,6 +15,7 @@ const runtime = [
   'js/booking-client.js', 'js/booking-ui.js', 'js/timezones.js', 'js/when-picker.js',
   'js/invitations.js', 'js/invitation-ui.js',
   'js/invitation-inbox.js',
+  'js/supporter.js', 'js/supporter-release.js',
   'vendor/decent-head/2.0.0',
 ];
 

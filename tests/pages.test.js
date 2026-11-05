@@ -1,12 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, access, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildPages } from '../scripts/build-pages.mjs';
 
 test('Pages includes the active app and notices, not repository files or retired runtimes', async () => {
-  const temporary = await mkdtemp(join(tmpdir(), 'dcal-pages-test-'));
+  const temporary = await mkdtemp(new URL('../.pages-test-', import.meta.url));
   const destination = join(temporary, 'site');
   try {
     await buildPages(destination);
@@ -17,6 +16,7 @@ test('Pages includes the active app and notices, not repository files or retired
       'vendor/decent-head/2.0.0/NOTICE', 'vendor/decent-head/2.0.0/js/main.js',
       'vendor/decent-head/2.0.0/js/vendor/ethers.LICENSE.md', 'js/calendar-storage.js',
       'js/booking-client.js', 'js/booking-ui.js',
+      'js/supporter.js', 'js/supporter-release.js',
     ]) await access(join(destination, file));
     for (const file of [
       '.git', '.github', 'tests', 'contracts', 'decent-calendar-react-app', 'package.json',
