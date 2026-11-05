@@ -1,30 +1,39 @@
 # DecentCalendar
 🗓️ A Decent Calendar - another decent creation by TheJollyLaMa to return back some agency to the decent people of 🌎
 
-## Versioned Supporter edition — preparing, not for sale yet
+## Versioned Supporter edition — v0.1.0, token 77
 
 Open the title's **About** dialog for the DecentCalendar Supporter card.
-It explicitly reports **Unavailable — preparing**: no mint, token ID, listing ID
-or checkout is configured. Calendar does not connect a wallet, approve USDC or
-sign from this card. Existing tiny-value booking payments are a separate beta.
-The proposed edition is **1,000 copies at 10 USDC each** on Base (8453), using
+The published edition is **1,000 copies at 10 USDC each** on Base (8453), using
 the existing DecentNFT and community escrow; this is not a feature unlock,
 booking, ownership share or guaranteed resale investment.
+
+- [Support Calendar — listing 7](https://thejollylama.github.io/DecentHead/supporter/buy.html?chainId=8453&escrow=0x31b07b83e99A9bdF379bf40225b8A80d3804C89d&listingId=7&priceUSDC=10000000)
+- [Verified release evidence and frozen artwork](https://github.com/TheJollyLaMa/DecentCalendar/releases/tag/v0.1.0)
+- [Public mint receipt — token 77](https://basescan.org/tx/0x5c53d1eacf93e7ec1696e5e0e5b1fccab27d42de59b7ffd91dedcf47f69fe07b)
+
+The shared Head verifier independently checked the frozen metadata URI, mint
+quantity, 12 confirmations, active 10 USDC listing and escrow stock at Base
+block **53545009** on 2026-11-05 (1,000 available then, not a live stock promise).
+Primary-sale funds remain in the approved community escrow. Calendar does not
+connect a wallet, approve USDC or sign from this card; external DecentHead checkout
+rechecks current listing/stock before signing. Existing tiny-value booking
+payments are a separate beta.
 
 The pinned DecentHead workflow prepares artwork, metadata, an entire tagged
 source archive and the tagged `decent-calendar-vanilla/` static site. It does
 not mint, escrow, change ENS or transact. Preparation needs the repository's
 `PINATA_JWT` secret, now configured (name verified by the coordinator).
-The planned tag is **`v0.1.0`**, a non-prerelease GitHub release named
+The published tag is **`v0.1.0`**, a non-prerelease GitHub release named
 **DecentCalendar v0.1.0 — Public Beta**. This publication classification permits
 receipt-backed Office observation; it does not imply production maturity or
 completion of the v1 roadmap. Optional announcements remain disabled
 unless `SUPPORTER_DISCORD_ENABLED=true` and `DISCORD_SUPPORTER_WEBHOOK` is set.
 No application secret is needed to serve the public site.
 
-After steward-approved mint/listing receipts have passed the pinned kit's Base
-verification (including at least 12 confirmations, stock and price), a reviewed
-follow-up may populate `decent-calendar-vanilla/js/supporter-release.js`.
+Steward-approved mint/listing receipts passed the shared kit's Base verification
+(including at least 12 confirmations, stock and price); the reviewed config is
+`decent-calendar-vanilla/js/supporter-release.js`.
 Its receipt-backed object must include `tag`, `sourceCommit`, `chainId`,
 `quantity`, `priceUSDC`, `nftContract`, `escrow`, decimal-string `tokenId` and
 `listingId`, `mintTxHash`, `confirmations` and the verified `purchaseUrl`.
@@ -33,7 +42,7 @@ HTTPS `https://thejollylama.github.io/DecentHead/supporter/buy.html` route bound
 to Base, this escrow, the listing and the exact USDC price. That external
 checkout—not Calendar—rechecks live inventory and handles signing. The card's
 shape checks are not independent on-chain receipt verification; never fill the
-object with unverified evidence. Keep `SUPPORTER_RELEASE = null` until then.
+object with unverified evidence. For an unverified edition keep `SUPPORTER_RELEASE = null`.
 An immutable pre-mint tag/IPFS snapshot intentionally remains “preparing”;
 update the current site only after receipt review, without moving that tag.
 

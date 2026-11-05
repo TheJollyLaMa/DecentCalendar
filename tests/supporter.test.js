@@ -21,12 +21,23 @@ class Element {
 const document = { createElement: tag => new Element(tag) };
 const flatten = element => [element, ...element.children.flatMap(flatten)];
 
-test('default release is absent and About card is explicitly unavailable with no purchase controls', () => {
-  assert.equal(SUPPORTER_RELEASE, null);
-  const nodes = flatten(createSupporterCard(document));
+test('absent release retains an explicitly unavailable About card with no purchase controls', () => {
+  const nodes = flatten(createSupporterCard(document, null));
   assert.ok(nodes.some(node => node.textContent.includes('Unavailable — preparing')));
   assert.ok(nodes.some(node => node.textContent.includes('No verified mint or listing')));
   assert.ok(nodes.every(node => !['a', 'button', 'img', 'script', 'iframe'].includes(node.tagName)));
+});
+test('published Calendar config binds token 77 and listing 7 to the verified v0.1.0 artifact', () => {
+  assert.equal(SUPPORTER_RELEASE.tag, 'v0.1.0');
+  assert.equal(SUPPORTER_RELEASE.sourceCommit, '27dbbecffa89ca4091ebef3478ad0b1a6ddd69f8');
+  assert.equal(SUPPORTER_RELEASE.tokenId, '77');
+  assert.equal(SUPPORTER_RELEASE.listingId, '7');
+  assert.equal(SUPPORTER_RELEASE.mintTxHash, '0x5c53d1eacf93e7ec1696e5e0e5b1fccab27d42de59b7ffd91dedcf47f69fe07b');
+  assert.equal(supporterCheckout(SUPPORTER_RELEASE), SUPPORTER_RELEASE.purchaseUrl);
+  const links = flatten(createSupporterCard(document)).filter(node => node.tagName === 'a');
+  assert.equal(links.length, 3);
+  assert.equal(links[0].href, SUPPORTER_RELEASE.purchaseUrl);
+  assert.equal(links[1].href, `https://basescan.org/tx/${SUPPORTER_RELEASE.mintTxHash}`);
 });
 test('receipt-shaped config produces only external checkout and public evidence links, preserving ID zero', () => {
   assert.equal(supporterCheckout(fixture), fixture.purchaseUrl);

@@ -4,6 +4,7 @@ import { readFile, mkdtemp, rm } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { buildPages } from './build-pages.mjs';
+import { SUPPORTER_RELEASE } from '../decent-calendar-vanilla/js/supporter-release.js';
 
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error('Set PLAYWRIGHT_MODULE to an existing Playwright installation.');
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
@@ -25,11 +26,17 @@ try {
   await buildPages(site);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   browser = await chromium.launch({ headless: true });
+  for (const state of ['published', 'pending']) {
   for (const width of [1440, 390, 320]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.route('https://**', route => route.abort());
+    if (state === 'pending') {
+      await page.route('**/js/supporter-release.js', route => route.fulfill({
+        contentType: 'text/javascript', body: 'export const SUPPORTER_RELEASE = null;',
+      }));
+    }
     await page.addInitScript(() => {
       window.__walletRequests = [];
       window.ethereum = {
@@ -46,9 +53,17 @@ try {
     const dialog = page.locator('about-modal dialog');
     await dialog.waitFor({ state: 'visible' });
     const card = page.locator('#dcal-supporter');
-    assert.match(await card.innerText(), /Unavailable — preparing/);
-    assert.match(await card.innerText(), /No verified mint or listing/);
-    assert.equal(await card.locator('button, a, input, iframe').count(), 0);
+    if (state === 'pending') {
+      assert.match(await card.innerText(), /Unavailable — preparing/);
+      assert.match(await card.innerText(), /No verified mint or listing/);
+      assert.equal(await card.locator('a').count(), 0);
+    } else {
+      assert.match(await card.innerText(), /v0.1.0 · 1,000 editions · 10 USDC each on Base/);
+      assert.equal(await card.locator('a').count(), 3);
+      assert.equal(await card.locator('a').first().getAttribute('href'), SUPPORTER_RELEASE.purchaseUrl);
+      assert.equal(await card.locator('a').nth(1).getAttribute('href'), `https://basescan.org/tx/${SUPPORTER_RELEASE.mintTxHash}`);
+    }
+    assert.equal(await card.locator('button, input, iframe').count(), 0);
     assert.equal(await page.locator('about-modal #buy, about-modal #paypal').count(), 0);
     assert.equal(await dialog.evaluate(element => element.scrollWidth > element.clientWidth + 1), false);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
@@ -61,7 +76,8 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__walletRequests), []);
     assert.deepEqual(errors, []);
     await page.close();
-    console.log(`About Supporter pending state, keyboard and layout passed at ${width}px`);
+    console.log(`About Supporter ${state} state, keyboard and layout passed at ${width}px`);
+  }
   }
 } finally {
   await browser?.close();
