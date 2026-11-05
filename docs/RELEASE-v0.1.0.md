@@ -1,9 +1,14 @@
 # DecentCalendar versioned Supporter readiness
 
-Review date: 2026-11-05. Recommended first tag: **`v0.1.0-beta.1`**,
-not `v1.0.0`. This is a supportable, explicitly limited beta snapshot, not
-completion of the paid-scheduling v1 roadmap. No release, tag, mint, listing,
-ENS update or announcement has been created by this change.
+Review date: 2026-11-05. Planned first tag: **`v0.1.0`**, not `v1.0.0`.
+Publish as a **non-prerelease** GitHub release named
+**DecentCalendar v0.1.0 — Public Beta**: the Office observer skips prereleases,
+so the stable tag classification permits receipt-backed version floors.
+This is still a supportable, explicitly limited **public beta** snapshot,
+not production maturity or completion of the paid-scheduling v1 roadmap.
+No release, tag, mint, listing, ENS update or announcement has been created
+by this change. Preparation uses the published tag verbatim (`v0.1.0`) in
+rendered/frozen Supporter metadata; the caller has no prerelease-tag default.
 
 ## Exact scope
 
@@ -54,9 +59,11 @@ There are deliberately **no token IDs, listing IDs or receipt hashes** here.
 
 1. Review/merge through the parent coordinator, then publish the agreed exact
    version tag/release. Do not silently call this full v1 acceptance.
-2. Configure `PINATA_JWT` in this repository; preparation is blocked until it
-   exists. Do not read/copy credentials from another app. Preparation performs
-   pinning and opens the steward issue, not wallet transactions.
+2. `PINATA_JWT` is now configured in this repository; its name was verified by
+   the coordinator on 2026-11-05. Credential presence is no longer a blocker;
+   validity and pinning are verified only when preparation runs. Do not
+   read/copy credentials from another app. Preparation performs pinning and
+   opens the steward issue, not wallet transactions.
 3. Review the rendered front/back, provenance, immutable source commit,
    flattened static site and frozen manifest for the published tag. Confirm
    the creator/royalty defaults and the policy above before any signing.
@@ -79,8 +86,9 @@ There are deliberately **no token IDs, listing IDs or receipt hashes** here.
 
 The pre-mint tag's site will remain honestly “preparing,” even after a later
 current-site receipt-config commit. Never move/rewrite that immutable tag.
-Missing secret **names only**: `PINATA_JWT`, `DISCORD_SUPPORTER_WEBHOOK`
-(the latter is unnecessary while announcements are disabled).
+Configured secret **name only**: `PINATA_JWT`.
+Missing optional secret **name only**: `DISCORD_SUPPORTER_WEBHOOK`
+(unnecessary while announcements are disabled).
 Optional public variables: `SUPPORTER_ENS_NAME`, `SUPPORTER_ENS_RPC_URL`.
 
 ## Every current open issue
@@ -105,7 +113,7 @@ every item in v0.2.0**. Receipt delivery is a separate steward gate.
 | #13 Exact Base checkout | Existing ETH/USDC exact allowance/payment disclosure is retained; unsupported fiat/direct-transfer paths stay disabled. Defer additional allowlisted ERC-20 and full replacement/free-session journey acceptance to next; Supporter checkout is separate and external. |
 | #14 Authenticated Rabbit Hole | Unavailable. Defer booking-bound proof/admission, media consent, signaling/TURN and real two-device tests to next; a link or ENS name cannot authorize a room. |
 | #15 Mobile/accessibility | New About card passes narrow/desktop layout, keyboard reopen/Escape and reduced-motion context. Defer complete booking/meeting/wallet deep-link/device/assistive matrix to next; Chromium fixture evidence is not universal device support. |
-| #21 Supporter release kit | Callers/card/provenance scope implemented here. Defer actual delivered edition/receipt/ENS/announcement acceptance until coordinator-controlled release and steward mint; preparation credentials and receipts are absent. Full v1 acceptance is not claimed. |
+| #21 Supporter release kit | Callers/card/provenance scope implemented here; `PINATA_JWT` is configured. Defer actual delivered edition/receipt/ENS/announcement acceptance until coordinator-controlled `v0.1.0` release and steward mint; verified receipts are absent. Full v1 acceptance is not claimed. |
 | #22 v1 umbrella | Keep open. This is v0.1 beta supportability, not the complete import → discovery → payment → authenticated meeting → settlement journey. Defer remaining epics and full v1 milestone to subsequent feature versions. |
 | #23 Agreement model | Existing runbook/registry document 300 bps, immutable terms and credits. Defer independent policy review, unresolved broader dispute/no-show/service-hardline guarantees to next before changing any contract. Timer expiry is never proof of delivery. |
 | #24 Canonical DecentHead | Existing exact vendor/session/storage adapter and notices retained, with a host-only About extension. Defer newest-distribution upgrade/full lifecycle screenshot matrix to next; release workflow pinning is not a browser vendor upgrade. |

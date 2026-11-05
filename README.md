@@ -14,7 +14,11 @@ booking, ownership share or guaranteed resale investment.
 The pinned DecentHead workflow prepares artwork, metadata, an entire tagged
 source archive and the tagged `decent-calendar-vanilla/` static site. It does
 not mint, escrow, change ENS or transact. Preparation needs the repository's
-`PINATA_JWT` secret, currently missing. Optional announcements remain disabled
+`PINATA_JWT` secret, now configured (name verified by the coordinator).
+The planned tag is **`v0.1.0`**, a non-prerelease GitHub release named
+**DecentCalendar v0.1.0 — Public Beta**. This publication classification permits
+receipt-backed Office observation; it does not imply production maturity or
+completion of the v1 roadmap. Optional announcements remain disabled
 unless `SUPPORTER_DISCORD_ENABLED=true` and `DISCORD_SUPPORTER_WEBHOOK` is set.
 No application secret is needed to serve the public site.
 
