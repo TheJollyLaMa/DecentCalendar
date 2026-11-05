@@ -1,6 +1,22 @@
 # DecentCalendar
 🗓️ A Decent Calendar - another decent creation by TheJollyLaMa to return back some agency to the decent people of 🌎
 
+## ENS website
+
+[decentcalendar.decentagency.eth](https://decentcalendar.decentagency.eth.limo)
+serves the reviewed post-mint site from `357d77d`, including token 77 / listing 7
+support links. The subname belongs to the DecentAgency owner and has its own
+calendar avatar, banner, description and repository records. Website and artwork
+bytes were verified through public IPFS; records and receipts were checked using
+two Ethereum RPC endpoints on 2026-11-05.
+[Public deployment evidence](https://github.com/TheJollyLaMa/DecentCanopy/blob/main/data/ens-project-deployments.json)
+records the exact CID, source commit and transactions.
+
+This is a fixed snapshot, not automatic GitHub synchronization. The original
+v0.1.0 Supporter manifest and pre-mint IPFS site remain immutable. The
+`SUPPORTER_ENS_NAME` repository variable configures the name for future
+preparations; it does not rewrite existing releases. Gateway caches may lag.
+
 ## Versioned Supporter edition — v0.1.0, token 77
 
 Open the title's **About** dialog for the DecentCalendar Supporter card.
