@@ -16,6 +16,9 @@ This is a fixed snapshot, not automatic GitHub synchronization. The original
 v0.1.0 Supporter manifest and pre-mint IPFS site remain immutable. The
 `SUPPORTER_ENS_NAME` repository variable configures the name for future
 preparations; it does not rewrite existing releases. Gateway caches may lag.
+The current [GitHub Pages app](https://thejollylama.github.io/DecentCalendar/)
+has the newer invited-appointment release and listing **20** checkout. The ENS
+snapshot is not updated by this Pages rollout and retains its historical links.
 
 ## Versioned Supporter edition — v0.1.0, token 77
 
@@ -24,7 +27,7 @@ The published edition is **1,000 copies at 10 USDC each** on Base (8453), using
 the existing DecentNFT and community escrow; this is not a feature unlock,
 booking, ownership share or guaranteed resale investment.
 
-- [Support Calendar — listing 7](https://thejollylama.github.io/DecentHead/supporter/buy.html?chainId=8453&escrow=0x31b07b83e99A9bdF379bf40225b8A80d3804C89d&listingId=7&priceUSDC=10000000)
+- [Support Calendar — listing 20](https://thejollylama.github.io/DecentHead/supporter/buy.html?chainId=8453&escrow=0x31b07b83e99A9bdF379bf40225b8A80d3804C89d&listingId=20&priceUSDC=10000000)
 - [Verified release evidence and frozen artwork](https://github.com/TheJollyLaMa/DecentCalendar/releases/tag/v0.1.0)
 - [Public mint receipt — token 77](https://basescan.org/tx/0x5c53d1eacf93e7ec1696e5e0e5b1fccab27d42de59b7ffd91dedcf47f69fe07b)
 
@@ -386,3 +389,11 @@ not use this prototype for sensitive real calendar or meeting data.
 
 Code: [Apache-2.0](LICENSE) · Art and docs: [CC BY 4.0](LICENSES/CC-BY-4.0.txt) · Please keep the [NOTICE](NOTICE) and give The Jolly LaMa / A Decent Agency a head nod when you reuse this work.
 Support the work with a [Supporter DNFT](https://thejollylama.github.io/DecentMarket/).
+# DCal supporter sale allocation
+
+Base block 54969585: token #77 has 890 copies in Market sale escrow on
+replacement listing #20, ten in the inactive Calendar booking-gift vault,
+and 99 in VoyagerRewards (unchanged). Listings #7 and #15 are inactive.
+The mint identity and 1,000-copy edition cap are unchanged. Relisting receipt:
+`0x9ad44ecc749440ded05ea39f369c1e0ee55a6514bf227d36a7ebacb10c9f5723`.
+This checkout correction does not enable the booking-gift promotion.

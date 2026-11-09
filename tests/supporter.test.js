@@ -27,7 +27,7 @@ test('absent release retains an explicitly unavailable About card with no purcha
   assert.ok(nodes.some(node => node.textContent.includes('No verified mint or listing')));
   assert.ok(nodes.every(node => !['a', 'button', 'img', 'script', 'iframe'].includes(node.tagName)));
 });
-test('Calendar feature config binds token 77 and replacement listing 20 to the unchanged v0.1.0 mint', () => {
+test('published Calendar config binds token 77 and replacement listing 20 to the unchanged v0.1.0 artifact', () => {
   assert.equal(SUPPORTER_RELEASE.tag, 'v0.1.0');
   assert.equal(SUPPORTER_RELEASE.sourceCommit, '27dbbecffa89ca4091ebef3478ad0b1a6ddd69f8');
   assert.equal(SUPPORTER_RELEASE.tokenId, '77');
