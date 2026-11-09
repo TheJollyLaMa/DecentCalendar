@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, access, rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdtemp, readFile, access, rm, readdir } from 'node:fs/promises';
+import { join, resolve, dirname } from 'node:path';
 import { buildPages } from '../scripts/build-pages.mjs';
 
 test('Pages includes the active app and notices, not repository files or retired runtimes', async () => {
@@ -26,6 +26,20 @@ test('Pages includes the active app and notices, not repository files or retired
       'js/components/WalletConnect.js', 'js/helpers/ipfs/w3upClient.js',
       'assets/Ommm_Token_Logo.png', 'assets/DecentSmartHome_Logo.png',
     ]) await assert.rejects(access(join(destination, file)), { code: 'ENOENT' });
+    async function checkImports(directory) {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name);
+        if (entry.isDirectory()) {
+          await checkImports(path);
+        } else if (entry.name.endsWith('.js')) {
+          const source = await readFile(path, 'utf8');
+          for (const match of source.matchAll(/(?:from\s*|import\s*\(?\s*)['"](\.[^'"]+)['"]/g)) {
+            await access(resolve(dirname(path), match[1]));
+          }
+        }
+      }
+    }
+    await checkImports(destination);
     await assert.rejects(buildPages(destination), { code: 'EEXIST' });
   } finally {
     await rm(temporary, { recursive: true });

@@ -64,6 +64,34 @@ hardcoded. The steward must approve the actual wallet, dates and public subject.
 An appointment is not proof of attendance, meeting-room authorization,
 performance-slot reservation, $10 prep-task payment or escrow funding.
 
+### Public UI and link handoff
+
+Use the current [Pages app](https://thejollylama.github.io/DecentCalendar/), not
+the fixed ENS snapshot. Connect the approved host wallet on Base, click
+**Free appointments**, then expand **Offer windows**. Confirm the
+invitee directly before entering their wallet/ENS. Enter the reviewed public
+subject, first/last dates, `America/New_York`, Mon/Tue/Wed/Thu only,
+07:00–10:00 and 15:00–19:00, and **30 minutes**. For the November 9–12, 2026
+template the preview is eight windows and 56 candidate starts (14 per day);
+the last morning/afternoon starts are 09:30/18:30. These are candidate slots,
+not published offers or proof that either wallet is free.
+
+Check the permanent-public-record consent, click **Review and publish windows**,
+review the resolved host/invitee, dates, subject and gas, and sign only if correct.
+After a successful receipt, expand the offered-wallet information panel and use
+**Copy link**. Share that exact generated URL; do not invent or predict its ID.
+The app reads `?availability=<positive decimal registry ID>`, then fetches the
+actual offer from the pinned registry. The URL contains no recipient/subject
+or room secret. Viewing it does not book; only the contract's invited wallet
+can choose a time and sign.
+
+The read-only browser entry points are
+`window.DCalAppointments.openAvailability(id)` and `openAppointment(id)`.
+They fetch records and open the existing UI; neither is a publication or
+signing API. `appointmentWindows()` builds UTC window structs locally, while
+`createAppointmentClient.publish()` is a separately gated wallet-signing action.
+No helper sends an invitation or direct message automatically.
+
 ## Source and invariants
 
 - `contracts/DCalAppointments.sol`: fundless immutable registry. No admin,
