@@ -5,6 +5,13 @@
     "serve:vanilla": "npx http-server decent-calendar-vanilla -p 8080 --cors",
     "serve:react": "cd decent-calendar-react-app && npm start",
     "test:escrow": "node --test tests/escrow.test.mjs tests/invitation-registry.test.mjs",
+    "test:appointments": "node --test tests/appointments.test.js tests/appointments.test.mjs",
+    "prepare:appointments": "node scripts/prepare-appointments-deployment.mjs",
+    "deploy:appointments": "node --env-file=.env scripts/deploy-appointments.mjs",
+    "prepare:rewards": "node scripts/prepare-booking-rewards.mjs",
+    "prepare:reward-funding": "node scripts/prepare-reward-funding.mjs",
+    "deploy:rewards": "node --env-file=.env scripts/deploy-appointments.mjs --rewards",
+    "test:rewards": "node --test tests/booking-rewards.test.mjs",
     "test:base-fork": "node --test tests/base-fork.test.mjs",
     "prepare:booking": "node scripts/prepare-booking-deployment.mjs",
     "deploy:booking": "node --env-file=.env scripts/deploy-booking.mjs"

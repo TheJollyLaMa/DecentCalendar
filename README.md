@@ -67,6 +67,35 @@ all open issue/branch dispositions, risks, hosting and the steward checklist.
 
 ## Invitations for published timeboxes
 
+### Free invited windows and public multi-calendar layers
+
+The vanilla app also includes [free invited appointments](docs/INVITED-APPOINTMENTS.md)
+and [public wallet / ENS layers](docs/CALENDAR-LAYERS.md). Add an address or ENS name
+with explicit public-read consent, then independently toggle known public offered
+windows and confirmed/cancelled appointments on one dated overlay. Each layer has
+Refresh, Remove and unavailable/stale states; identical host/guest records render once.
+Layers recover records remotely from the pinned Base registry, never another
+wallet's local storage. Private/external calendars and missing/older records are
+not treated as free time. The new appointment registry is deployed and pinned;
+public publishing and invited-wallet booking are enabled, with explicit wallet
+signing and Base gas. A complete two-wallet mainnet rehearsal remains outstanding.
+An unconfigured registry fails visibly.
+Click actual availability to enter the existing invited-wallet appointment screen,
+which rechecks the contract before any explicit signing.
+Small **i** panels hold identities, read limits and explanations; errors, consent
+and applicable booking costs stay visible. Guest offers hide host publishing and
+unrelated recovery/history machinery. The white rabbit explains these controls.
+
+[Device reminders](docs/INVITED-APPOINTMENTS.md) include static iPhone/Android
+calendar exports with 15-minute display alarms and UTC-safe Google add links.
+Google and device calendar permissions still control notification delivery.
+The hidden [first-booking gift promotion](docs/BOOKING-REWARDS.md) reader is enabled,
+deployed and funded but inactive: ten DCal Supporter gifts, guest-only and once per wallet,
+with automatic delivery gated by owner activation and the separately coordinated
+DJuke worker release. No gift eligibility is claimed while the vault is inactive.
+The silent 4-second top laser fan and full-screen emoji shower never
+treat pending as received.
+
 The right ankh's **Invitations** menu discovers host-signed public invitations
 from the pinned `DCalInvitations` Base registry. It checks on Base wallet connect
 and once per minute while the page is visible (or explicitly on Refresh).
@@ -189,7 +218,8 @@ remain unavailable.
 - Importing a DCal public-availability CID displays read-only information;
   it does not overwrite local events, authorize meetings or prove bookings.
   Calendar-feed import and automatic wallet-to-CID discovery are not yet
-  implemented. Address lookup currently reads this browser only.
+  implemented. Public wallet layers read only the separately configured Base
+  appointment registry; private/external calendar discovery is not implemented.
 - Account/network/disconnect changes clear the app signer, calendar view
   and open controls. A wrong chain does not trigger an automatic switch
   or reload. The wallet session is restored only on Base.

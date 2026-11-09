@@ -6,6 +6,9 @@ import { installSlotUI } from './slot-ui.js';
 import { installBookingUI } from './booking-ui.js';
 import { installInvitationInbox } from './invitation-inbox.js';
 import { installSupporterCard } from './supporter.js';
+import { installAppointmentUI } from './appointment-ui.js';
+import { installCalendarLayers } from './calendar-layer-ui.js';
+import { installBookingRewards } from './booking-reward-ui.js';
 import './components/Calendar.js';
 
 const report = message => { document.getElementById('calendar-status').textContent = message; };
@@ -29,13 +32,21 @@ installSlotUI(identity);
 installTutorial();
 installBookingUI();
 const inbox = installInvitationInbox();
+const bookingRewards = installBookingRewards();
+const appointments = installAppointmentUI();
+const layers = installCalendarLayers(identity);
 bindCalendarSession(DecentHead, {
   connected: () => {
+    bookingRewards.clear();
     loadAndRenderMyEvents();
     inbox.connected();
+    appointments.connected();
   },
   disconnected: () => {
+    bookingRewards.clear();
+    layers.clear();
     inbox.disconnected();
+    appointments.disconnected();
     clearCalendarEvents();
     closeMeetingRoom();
     document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden'));

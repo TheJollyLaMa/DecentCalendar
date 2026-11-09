@@ -18,6 +18,34 @@ function parts(date, zone) {
   return { ...values, wall: Date.UTC(+values.year, +values.month - 1, +values.day, +values.hour, +values.minute) };
 }
 
+// Adapted from Busking's newYorkInputToUtc; ambiguous repeated times require a different choice.
+export function localInputToUtc(value, zone) {
+  if (!validTimeZone(zone)) throw new Error('Choose a valid IANA timezone.');
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value || '');
+  if (!match) throw new Error('Choose a valid local date and time.');
+  const [year, month, day, hour, minute] = match.slice(1).map(Number);
+  const target = Date.UTC(year, month - 1, day, hour, minute), date = new Date(target);
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day || hour > 23 || minute > 59) {
+    throw new Error('Choose a valid local date and time.');
+  }
+  const matches = new Set();
+  for (const offset of [-86400000, 0, 86400000]) {
+    let epoch = target + offset;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const displayed = parts(new Date(epoch), zone).wall;
+      if (displayed === target) { matches.add(epoch); break; }
+      epoch += target - displayed;
+    }
+  }
+  if (matches.size !== 1) throw new Error('This local time is missing or ambiguous because of a daylight-saving change. Choose another time.');
+  return new Date([...matches][0]).toISOString();
+}
+
+export function dateInZone(value, zone) {
+  const p = parts(new Date(value), zone);
+  return `${p.year}-${p.month.padStart(2, '0')}-${p.day.padStart(2, '0')}`;
+}
+
 function offsetLabel(minutes) {
   if (minutes === 0) return 'same time as you';
   const sign = minutes > 0 ? '+' : '-', abs = Math.abs(minutes);

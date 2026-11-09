@@ -46,19 +46,27 @@ export function installInvitationUI({ container, slot, registry, account, profil
     const result = await shareInvitation({ url: publicLink, title: 'DCal public timebox' });
     if (isCurrent()) message.textContent = result;
   });
-  action('Download calendar (.ics)', () => {
+  action('Add to iPhone / Android (.ics)', () => {
     const blob = new Blob([calendarICS(slot, { registry, base })], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob), anchor = document.createElement('a');
     anchor.href = url; anchor.download = `dcal-timebox-${slot.id}.ics`;
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    message.textContent = 'Calendar snapshot downloaded. Refresh Base state before attending; calendar entries do not update automatically.';
+    message.textContent = 'Open this calendar snapshot and confirm adding it; a 15-minute alert is included. Check your calendar imported it. Refresh Base before attending; calendar entries do not update automatically.';
   });
   const google = document.createElement('a');
   google.href = googleCalendarLink(slot, { base });
   google.target = '_blank'; google.rel = 'noopener noreferrer';
   google.textContent = 'Add to Google Calendar';
   section.append(google);
+  const reminderNote = document.createElement('details');
+  const reminderSummary = document.createElement('summary');
+  reminderSummary.textContent = 'i';
+  reminderSummary.setAttribute('aria-label', 'Device reminders');
+  const reminderText = document.createElement('p');
+  reminderText.textContent = 'iPhone: open the .ics in Calendar. Android: import using your calendar app or Google Calendar web. Google templates cannot enforce alerts: set a 15-minute notification before saving. Your calendar and device permissions control delivery. This is a static copy, not a live subscription.';
+  reminderNote.append(reminderSummary, reminderText);
+  section.append(reminderNote);
 
   if (account?.toLowerCase() === slot.host.toLowerCase()) {
     const label = document.createElement('label'), input = document.createElement('input');

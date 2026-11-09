@@ -1,0 +1,24 @@
+{
+  "chainId": 8453,
+  "nft": "0xe63EC9f8228720bAAC2fD528C0A6d06B3Dc5439B",
+  "tokenId": "77",
+  "escrow": "0x31b07b83e99A9bdF379bf40225b8A80d3804C89d",
+  "owner": "0x807061DF657A7697c04045dA7d16D941861cAABc",
+  "giftVault": "0xB079B367efA71Aa4C9358d4A46d72Dfd0AF4bc44",
+  "oldListingId": "15",
+  "newListingId": "20",
+  "giftQuantity": "10",
+  "saleQuantity": "890",
+  "priceUSDC": "10000000",
+  "verifiedBlock": 54969585,
+  "voyagerStock": "99",
+  "promotionEnabled": false,
+  "startAppointmentId": "0",
+  "transactions": [
+    { "method": "delistDNFT", "hash": "0xb57b6726d0ae82210ec617c5a6e153078fc5971b1d5b9ab1cf227e6cec97aabb", "block": 54969238, "feeWeiIncludingL1": "152489886228" },
+    { "method": "withdrawNFT", "hash": "0x4b32d118d3a3e6b1e1ae1eff70824330f585d43e99f7d336d5c613f8b19777ba", "block": 54969341, "feeWeiIncludingL1": "441974669217" },
+    { "method": "listDNFT", "hash": "0x9ad44ecc749440ded05ea39f369c1e0ee55a6514bf227d36a7ebacb10c9f5723", "block": 54969454, "feeWeiIncludingL1": "1467170100291" }
+  ],
+  "totalFeeWeiIncludingL1": "2061634655736",
+  "publication": "Feature-branch checkout corrections pending site release; no activation or worker enablement."
+}

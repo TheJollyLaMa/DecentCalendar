@@ -1,0 +1,18 @@
+{
+  "contract": "DCalBookingRewards",
+  "chainId": 8453,
+  "address": "0xB079B367efA71Aa4C9358d4A46d72Dfd0AF4bc44",
+  "transaction": "0x71af3c2ef55cdf651d6022859b588e71e60af9ea96b5ed614d640160a2696cd8",
+  "block": 54961831,
+  "deployer": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "sourceHash": "0x7106e8cdb0deb2c2b932b7c7ddac417d826838649ac0d34a00d3c348e4f1b433",
+  "runtimeCodeHash": "0x395859ef212844192c2a6832c392fa7f980a6b9726feecfeb95978f0ea4b9254",
+  "rewardsConfig": {
+    "address": "0xB079B367efA71Aa4C9358d4A46d72Dfd0AF4bc44",
+    "runtimeCodeHash": "0x395859ef212844192c2a6832c392fa7f980a6b9726feecfeb95978f0ea4b9254",
+    "registry": "0xa61869FD9C4376fF1DA9E7dF48b5Ba746d4bD048",
+    "nft": "0xe63EC9f8228720bAAC2fD528C0A6d06B3Dc5439B",
+    "tokenId": "77",
+    "enabled": false
+  }
+}

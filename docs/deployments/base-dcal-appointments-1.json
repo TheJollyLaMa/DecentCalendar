@@ -1,0 +1,15 @@
+{
+  "contract": "DCalAppointments",
+  "chainId": 8453,
+  "address": "0xa61869FD9C4376fF1DA9E7dF48b5Ba746d4bD048",
+  "transaction": "0x59b2266404930b3c88e565fc798f3b0066bd22ea4af29a9fdc5472e37e504997",
+  "block": 54943576,
+  "deployer": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "sourceHash": "0x6e3266a75ffb04636a609fd731f4e0fe2ec0f04118ea89ad28dfb01eb42c2482",
+  "runtimeCodeHash": "0xe55c66a2ec61774dd202696072c6c35b5ad0395eca6238fac6cdfd47b9dedc5c",
+  "appointmentsConfig": {
+    "address": "0xa61869FD9C4376fF1DA9E7dF48b5Ba746d4bD048",
+    "runtimeCodeHash": "0xe55c66a2ec61774dd202696072c6c35b5ad0395eca6238fac6cdfd47b9dedc5c",
+    "writesEnabled": false
+  }
+}

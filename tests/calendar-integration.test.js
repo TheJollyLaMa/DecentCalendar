@@ -61,9 +61,30 @@ test('canonical Base config and shell load only one Head and no retired w3up bun
   assert.ok(entry.indexOf('ipfsAdapter =') < entry.indexOf("await import('../vendor/"));
 });
 
+test('published appointment writes and reward reader pin verified deployments without activating the vault', async () => {
+  const context = vm.createContext({ window: {} });
+  vm.runInContext(await source('decent.config.js'), context);
+  const config = context.window.DECENT_CONFIG;
+  for (const [key, file, evidenceKey] of [
+    ['appointments', 'base-dcal-appointments-1.json', 'appointmentsConfig'],
+    ['bookingRewards', 'base-dcal-booking-rewards-1.json', 'rewardsConfig'],
+  ]) {
+    const evidence = JSON.parse(await readFile(new URL(`../docs/deployments/${file}`, import.meta.url), 'utf8'));
+    assert.equal(config[key].address, evidence.address);
+    assert.equal(config[key].runtimeCodeHash, evidence.runtimeCodeHash);
+    assert.equal(evidence[evidenceKey][key === 'appointments' ? 'writesEnabled' : 'enabled'], false);
+  }
+  assert.equal(config.appointments.writesEnabled, true);
+  assert.equal(config.bookingRewards.enabled, true);
+  assert.equal(config.bookingRewards.registry, config.appointments.address);
+  assert.equal(config.bookingRewards.nft, '0xe63EC9f8228720bAAC2fD528C0A6d06B3Dc5439B');
+  assert.equal(config.bookingRewards.tokenId, '77');
+});
+
 test('public prototype cannot open unauthenticated meetings or request media', async () => {
   const messages = [];
   const context = vm.createContext({
+    window: {},
     alert: message => messages.push(message),
     document: { getElementById() { throw new Error('Meeting DOM should not open'); } },
     navigator: { mediaDevices: { getUserMedia() { throw new Error('Media must not be requested'); } } },

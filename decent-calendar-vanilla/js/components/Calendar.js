@@ -13,15 +13,7 @@ class DecentCalendar extends HTMLElement {
     this.innerHTML = `
       <main id="main-content">
         <div id="calendar-controls">
-          <div class="address-input">
-            <input
-              id="lookup-address"
-              type="text"
-              placeholder="Wallet address or ENS name (local lookup)"
-              aria-label="Wallet address or ENS name"
-            />
-            <button id="fetch-events-btn">Look up local availability</button>
-          </div>
+          <a href="#calendar-layers">Add / toggle public wallet layers</a>
           <div id="calendar-toggle"></div>
           <button id="add-event-btn" class="add-event-button" title="Add Event">+</button>
           <button id="mint-timeslot-btn" class="mint-button" disabled title="NFT minting is not supported. Publish public drafts through their slot details.">NFT minting unavailable</button>
@@ -70,9 +62,6 @@ class DecentCalendar extends HTMLElement {
     document.getElementById('mint-timeslot-btn').addEventListener('click', () => this._openMintModal());
     document.getElementById('confirm-mint-btn').addEventListener('click', () => this._handleMintTimeslot());
     document.getElementById('cancel-mint-btn').addEventListener('click', () => this._closeMintModal());
-
-    // Fetch Public Events
-    document.getElementById('fetch-events-btn').addEventListener('click', () => this._handleFetchPublicEvents());
 
     // Booking Modal
     document.getElementById('cancel-booking-btn').addEventListener('click', () => {
@@ -317,43 +306,6 @@ class DecentCalendar extends HTMLElement {
       addEventToCalendar(saved);
     } catch (err) {
       console.error('Error saving minted timeslot:', err);
-    }
-  }
-
-  // ---- Fetch Public Events ----
-
-  async _handleFetchPublicEvents() {
-    const input = document.getElementById('lookup-address').value.trim();
-    if (!input) {
-      alert('Please enter a wallet address.');
-      return;
-    }
-
-    try {
-      const address = await window.DCalProfiles.address(input);
-      const color = generateColorForAddress(address);
-      const events = await fetchPublicEventsForAddress(address);
-
-      const mapped = events.map((event) => ({
-        ...event,
-        classNames: event.classNames || ['imported-event'],
-        backgroundColor: color,
-        borderColor: color,
-        hourlyRate: event.hourlyRate || 0,
-      }));
-
-      // Use setters exposed by calendar.js
-      setOtherEvents(mapped);
-      setCurrentLookupAddress(address);
-      refreshCalendarToggle();
-      refreshCalendar();
-
-      if (events.length === 0) {
-        alert('No public events found for this address.');
-      }
-    } catch (err) {
-      console.error('Fetch public events error:', err);
-      alert('Failed to fetch events: ' + err.message);
     }
   }
 
