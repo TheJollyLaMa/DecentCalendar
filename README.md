@@ -356,3 +356,11 @@ not use this prototype for sensitive real calendar or meeting data.
 
 Code: [Apache-2.0](LICENSE) · Art and docs: [CC BY 4.0](LICENSES/CC-BY-4.0.txt) · Please keep the [NOTICE](NOTICE) and give The Jolly LaMa / A Decent Agency a head nod when you reuse this work.
 Support the work with a [Supporter DNFT](https://thejollylama.github.io/DecentMarket/).
+# DCal supporter sale allocation
+
+Base block 54969585: token #77 has 890 copies in Market sale escrow on
+replacement listing #20, ten in the inactive Calendar booking-gift vault,
+and 99 in VoyagerRewards (unchanged). Listings #7 and #15 are inactive.
+The mint identity and 1,000-copy edition cap are unchanged. Relisting receipt:
+`0x9ad44ecc749440ded05ea39f369c1e0ee55a6514bf227d36a7ebacb10c9f5723`.
+This checkout correction does not enable the booking-gift promotion.
