@@ -60,6 +60,15 @@ dialog label { display: block; margin: 12px 0; }
 dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 16rem; overflow: auto; }
 dialog input:not([type="checkbox"]) { max-width: 100%; box-sizing: border-box; }
 dialog [data-close] { float: right; position: sticky; top: 0; }
+#appointment-summary { margin: 0; padding: 10px 20px; background: #080e1a; font: 14px/1.5 system-ui, sans-serif; text-align: center; }
+#appointments button { font: inherit; min-height: 44px; margin: 6px 0; padding: 8px 12px; color: #a6ffdd; background: #0b2630; border: 1px solid #7af0c6; border-radius: 10px; cursor: pointer; max-width: 100%; }
+#appointments button:disabled { opacity: .5; cursor: not-allowed; }
+#appointments input:not([type="checkbox"]), #appointments select { display: block; width: 100%; padding: 8px; font: inherit; background: #050d12; color: white; border: 1px solid #0ff; border-radius: 8px; box-sizing: border-box; }
+#appointments fieldset { display: flex; flex-wrap: wrap; gap: 12px; border: 1px solid #7af0c655; }
+#appointments a { color: #7af0c6; }
+#appointment-detail details { margin: 12px 0; }
+#appointment-detail details button { display: block; width: 100%; text-align: left; }
+.appointment-card { margin: 16px 0; padding: 12px; border: 1px solid #7af0c655; border-radius: 10px; }
 #booking-registry button { margin: 6px; padding: 10px; }
 #booking-registry a { color: #7af0c6; }
 #booking-registry input:not([type="checkbox"]) { width: 100%; }

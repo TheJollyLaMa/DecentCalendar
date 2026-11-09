@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="css/calendar.css" />
+  <link rel="stylesheet" href="css/booking-gift.css" />
 </head>
 <body>
 
@@ -18,8 +19,72 @@
   <nav class="onboarding-bar" aria-label="Getting started">
     <button id="rabbit-tour-launch" type="button"><span class="rabbit-glyph" aria-hidden="true">&#128007;</span> Follow the white rabbit <small>Learn DCal - no wallet needed</small></button>
     <a href="#release-readiness">Launch readiness</a>
-    <button id="open-booking-registry" type="button">Bookings / recover / withdraw</button>
+    <button id="open-booking-registry" type="button">Paid bookings</button>
+    <button id="open-appointments" type="button">Free appointments</button>
   </nav>
+  <p id="appointment-summary" role="status">Connect on Base to recover your free appointments.</p>
+
+  <section id="calendar-layers" aria-labelledby="calendar-layers-title">
+    <h2 id="calendar-layers-title">Public calendar layers</h2>
+    <details class="ui-info"><summary aria-label="About public layers, privacy and recovery" title="About public layers, privacy and recovery">i</summary>
+      <p>Toggle known public offered windows and appointments together. Your own calendar stays separate. Reads need no wallet connection or signature. Private/external calendars and paid-booking history are not discovered; missing data never means free time.</p>
+      <p>Candidate = outlined offered window; busy = confirmed appointment; cancelled = dashed, not busy. Click a record for its actual availability link. Check dates before booking.</p>
+      <p>Layers are session-only. Re-add them on another browser to recover public Base records, never another wallet's local storage.</p>
+    </details>
+    <form id="calendar-layer-form">
+      <label for="calendar-layer-wallet">Wallet address or ENS name</label>
+      <input id="calendar-layer-wallet" name="wallet" required autocomplete="off" spellcheck="false" maxlength="255" placeholder="0x… or name.eth">
+      <label class="layer-consent"><input type="checkbox" name="consent" required>I approve reading this wallet's public Base appointment records and resolving an entered ENS name through the configured public RPCs.</label>
+      <button type="submit">Add public layer</button>
+    </form>
+    <p id="calendar-layer-status" role="status" aria-live="polite"></p>
+    <button id="refresh-calendar-layers" type="button" hidden>Refresh all</button>
+    <div id="calendar-layer-list" aria-label="Public layer visibility and read status"></div>
+    <p id="calendar-layer-evidence" role="status"></p>
+    <section id="calendar-layer-detail" aria-label="Selected public calendar record" hidden></section>
+  </section>
+
+  <dialog id="appointments" aria-labelledby="appointments-title">
+    <button type="button" data-close>Close</button>
+    <h2 id="appointments-title">Choose a time together</h2>
+    <details class="ui-info"><summary aria-label="About free appointments and public records" title="About free appointments and public records">i</summary><p>Only the invited wallet can book; one appointment per offered day. Both wallets recover public records from Base. Free appointments are not paid timeboxes; transactions cost gas. No attendance, media access or task payment is implied.</p></details>
+    <details id="appointment-publish" hidden><summary>Offer windows</summary>
+      <form id="availability-form">
+        <label>Invitee wallet or ENS<input name="invitee" required autocomplete="off"></label>
+        <label>Public subject<input name="subject" required maxlength="200" value="Guided check-in"></label>
+        <label>Host timezone<input name="timezone" required value="America/New_York"></label>
+        <label>First date<input name="firstDate" type="date" required></label>
+        <label>Last date (maximum 31 days)<input name="lastDate" type="date" required></label>
+        <fieldset><legend>Offered days</legend>
+          <label><input name="weekday" type="checkbox" value="1" checked>Mon</label>
+          <label><input name="weekday" type="checkbox" value="2" checked>Tue</label>
+          <label><input name="weekday" type="checkbox" value="3" checked>Wed</label>
+          <label><input name="weekday" type="checkbox" value="4" checked>Thu</label>
+          <label><input name="weekday" type="checkbox" value="5">Fri</label>
+          <label><input name="weekday" type="checkbox" value="6">Sat</label>
+          <label><input name="weekday" type="checkbox" value="0">Sun</label>
+        </fieldset>
+        <label>Morning from<input name="morningStart" type="time" value="07:00" required></label>
+        <label>Morning until<input name="morningEnd" type="time" value="10:00" required></label>
+        <label>Afternoon from<input name="afternoonStart" type="time" value="15:00" required></label>
+        <label>Afternoon until<input name="afternoonEnd" type="time" value="19:00" required></label>
+        <label>Appointment length<select name="duration"><option value="900">15 minutes</option><option value="1800" selected>30 minutes</option><option value="3600">60 minutes</option></select></label>
+        <p>No appointment fee. Publishing costs Base gas.</p>
+        <label><input name="publicConsent" type="checkbox" required>I approve publishing these windows, wallets and subject permanently on Base.</label>
+        <button type="submit">Review and publish windows</button>
+      </form>
+    </details>
+    <button id="refresh-appointments" type="button" hidden>Refresh mine</button>
+    <button id="recover-appointment-tx" type="button" hidden>Reconcile pending transaction</button>
+    <details id="appointment-recovery" class="ui-info"><summary aria-label="Recover an appointment by ID" title="Recover an appointment by ID">i</summary>
+      <label>Appointment ID<input id="appointment-id" inputmode="numeric"></label>
+      <button id="read-appointment-id" type="button">Read appointment</button>
+    </details>
+    <p id="appointment-status" role="status" aria-live="polite"></p>
+    <details id="appointment-transaction-history" class="ui-info" hidden><summary aria-label="Appointment transaction history" title="Appointment transaction history">i</summary><div id="appointment-transactions" aria-label="Appointment transactions"></div></details>
+    <div id="appointment-detail"></div>
+    <div id="appointment-records"></div>
+  </dialog>
 
   <!-- Main Calendar Web Component (light DOM — FullCalendar needs real DOM) -->
   <decent-calendar></decent-calendar>
@@ -29,13 +94,14 @@
     <p>Another creation by A Decent Agency to help the world be on the same page.</p>
   </footer>
 
-  <section id="release-readiness" aria-labelledby="readiness-title">
-    <h2 id="readiness-title">The trail to live bookings</h2>
+  <section id="release-readiness" aria-label="Release readiness">
+    <details><summary>Release readiness</summary>
     <p>Available now: local drafts with a hardline preference, ENS profile and artwork, exact ETH/USDC agreement previews, backups and deliberate public availability. The registry UI includes booking recovery and withdrawal controls, but transactions remain disabled.</p>
     <p>Before taking payment: complete an independent contract review, repeat the passing canonical-USDC fork tests, resolve and confirm DecentAgency.eth's fee address, deploy and pin the Base booking registry, and rehearse a minimal approved live lifecycle. No wallet address is inferred from artwork or a display name.</p>
     <p>Before live calls: test booking-bound wallet challenges, waiting-room admission, media consent and the optional five-minute hardline countdown. App-enforced P2P ending is not server-enforced room expiry.</p>
     <p>Agreed v1 policy: nontransferable records, full refunds before the start, buyer-authorized release after the end or host-authorized full refund, buyer refund after seven unresolved days, no admin dispute power. A call ending never releases money automatically.</p>
     <a href="https://github.com/TheJollyLaMa/DecentCalendar/issues/22" target="_blank" rel="noopener noreferrer">Track the release plan</a>
+    </details>
   </section>
 
   <dialog id="rabbit-tour" aria-labelledby="rabbit-title" aria-describedby="rabbit-body">

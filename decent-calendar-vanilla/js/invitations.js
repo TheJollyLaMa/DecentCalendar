@@ -61,6 +61,7 @@ function utc(value) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 }
 const escapeICS = text => String(text).replace(/\\/g, '\\\\').replace(/\r\n|\r|\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
+export const DEVICE_REMINDER = ['BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:-PT15M', 'DESCRIPTION:DecentCalendar starts in 15 minutes', 'END:VALARM'];
 
 // RFC 5545 limits content lines to 75 UTF-8 octets (including continuation space).
 export function foldICS(line) {
@@ -94,16 +95,21 @@ export function calendarICS(slot, { registry, base, now = new Date() }) {
     `DTSTART:${terms.start}`, `DTEND:${terms.end}`,
     `STATUS:${slot.state === 1 ? 'CANCELLED' : 'TENTATIVE'}`,
     `SUMMARY:${escapeICS(slot.subject)}`, `DESCRIPTION:${escapeICS(terms.description)}`,
-    `URL:${link}`, 'END:VEVENT', 'END:VCALENDAR',
+    `URL:${link}`, ...(slot.state === 1 ? [] : DEVICE_REMINDER), 'END:VEVENT', 'END:VCALENDAR',
   ].map(foldICS).join('\r\n') + '\r\n';
 }
 
 export function googleCalendarLink(slot, { base }) {
   const terms = calendarTerms(slot, timeboxLink(base, slot.id));
+  return googleEventLink({ subject: slot.subject, start: slot.start, end: slot.end, description: terms.description });
+}
+
+export function googleEventLink({ subject, start, end, description }) {
+  if (BigInt(end) <= BigInt(start)) throw new Error('Invalid calendar interval.');
   const url = new URL('https://calendar.google.com/calendar/render');
   url.search = new URLSearchParams({
-    action: 'TEMPLATE', text: slot.subject,
-    dates: `${terms.start}/${terms.end}`, details: terms.description,
+    action: 'TEMPLATE', text: subject,
+    dates: `${utc(start)}/${utc(end)}`, details: `${description}\nSet a notification for 15 minutes before saving. This Google template cannot enforce your device reminder settings.`,
   }).toString();
   return url.href;
 }

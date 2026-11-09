@@ -16,6 +16,9 @@ This is a fixed snapshot, not automatic GitHub synchronization. The original
 v0.1.0 Supporter manifest and pre-mint IPFS site remain immutable. The
 `SUPPORTER_ENS_NAME` repository variable configures the name for future
 preparations; it does not rewrite existing releases. Gateway caches may lag.
+The current [GitHub Pages app](https://thejollylama.github.io/DecentCalendar/)
+has the newer invited-appointment release and listing **20** checkout. The ENS
+snapshot is not updated by this Pages rollout and retains its historical links.
 
 ## Versioned Supporter edition — v0.1.0, token 77
 
@@ -24,7 +27,7 @@ The published edition is **1,000 copies at 10 USDC each** on Base (8453), using
 the existing DecentNFT and community escrow; this is not a feature unlock,
 booking, ownership share or guaranteed resale investment.
 
-- [Support Calendar — listing 7](https://thejollylama.github.io/DecentHead/supporter/buy.html?chainId=8453&escrow=0x31b07b83e99A9bdF379bf40225b8A80d3804C89d&listingId=7&priceUSDC=10000000)
+- [Support Calendar — listing 20](https://thejollylama.github.io/DecentHead/supporter/buy.html?chainId=8453&escrow=0x31b07b83e99A9bdF379bf40225b8A80d3804C89d&listingId=20&priceUSDC=10000000)
 - [Verified release evidence and frozen artwork](https://github.com/TheJollyLaMa/DecentCalendar/releases/tag/v0.1.0)
 - [Public mint receipt — token 77](https://basescan.org/tx/0x5c53d1eacf93e7ec1696e5e0e5b1fccab27d42de59b7ffd91dedcf47f69fe07b)
 
@@ -66,6 +69,35 @@ See [v0.1.0 readiness notes](docs/RELEASE-v0.1.0.md) for precise shipped scope,
 all open issue/branch dispositions, risks, hosting and the steward checklist.
 
 ## Invitations for published timeboxes
+
+### Free invited windows and public multi-calendar layers
+
+The vanilla app also includes [free invited appointments](docs/INVITED-APPOINTMENTS.md)
+and [public wallet / ENS layers](docs/CALENDAR-LAYERS.md). Add an address or ENS name
+with explicit public-read consent, then independently toggle known public offered
+windows and confirmed/cancelled appointments on one dated overlay. Each layer has
+Refresh, Remove and unavailable/stale states; identical host/guest records render once.
+Layers recover records remotely from the pinned Base registry, never another
+wallet's local storage. Private/external calendars and missing/older records are
+not treated as free time. The new appointment registry is deployed and pinned;
+public publishing and invited-wallet booking are enabled, with explicit wallet
+signing and Base gas. A complete two-wallet mainnet rehearsal remains outstanding.
+An unconfigured registry fails visibly.
+Click actual availability to enter the existing invited-wallet appointment screen,
+which rechecks the contract before any explicit signing.
+Small **i** panels hold identities, read limits and explanations; errors, consent
+and applicable booking costs stay visible. Guest offers hide host publishing and
+unrelated recovery/history machinery. The white rabbit explains these controls.
+
+[Device reminders](docs/INVITED-APPOINTMENTS.md) include static iPhone/Android
+calendar exports with 15-minute display alarms and UTC-safe Google add links.
+Google and device calendar permissions still control notification delivery.
+The hidden [first-booking gift promotion](docs/BOOKING-REWARDS.md) reader is enabled,
+deployed and funded but inactive: ten DCal Supporter gifts, guest-only and once per wallet,
+with automatic delivery gated by owner activation and the separately coordinated
+DJuke worker release. No gift eligibility is claimed while the vault is inactive.
+The silent 4-second top laser fan and full-screen emoji shower never
+treat pending as received.
 
 The right ankh's **Invitations** menu discovers host-signed public invitations
 from the pinned `DCalInvitations` Base registry. It checks on Base wallet connect
@@ -189,7 +221,8 @@ remain unavailable.
 - Importing a DCal public-availability CID displays read-only information;
   it does not overwrite local events, authorize meetings or prove bookings.
   Calendar-feed import and automatic wallet-to-CID discovery are not yet
-  implemented. Address lookup currently reads this browser only.
+  implemented. Public wallet layers read only the separately configured Base
+  appointment registry; private/external calendar discovery is not implemented.
 - Account/network/disconnect changes clear the app signer, calendar view
   and open controls. A wrong chain does not trigger an automatic switch
   or reload. The wallet session is restored only on Base.

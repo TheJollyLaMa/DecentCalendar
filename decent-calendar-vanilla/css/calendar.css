@@ -4,6 +4,57 @@
    ========================================================= */
 
 /* ---- Calendar Wrapper ---- */
+.ui-info { margin: 8px 0; text-align: left; }
+.ui-info > summary {
+  display: list-item;
+  list-style: none;
+  box-sizing: border-box;
+  width: 32px;
+  min-height: 32px;
+  padding: 4px;
+  border: 1px solid #8bd5ff;
+  border-radius: 50%;
+  text-align: center;
+  font: italic bold 18px Georgia, serif;
+  color: #8bd5ff;
+  cursor: pointer;
+}
+.ui-info > summary::-webkit-details-marker { display: none; }
+.ui-info > summary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.ui-info[open] { padding-bottom: 8px; border-bottom: 1px solid #476775; }
+.ui-info p { overflow-wrap: anywhere; font-size: .9rem; }
+.ui-info a { overflow-wrap: anywhere; }
+#appointment-status, #appointment-transactions, #calendar-layer-status { overflow-wrap: anywhere; }
+#calendar-layers > h2 { display: inline-block; margin-right: 12px; }
+#calendar-layers > .ui-info:not([open]) { display: inline-block; }
+#appointments [hidden], #calendar-layers [hidden] { display: none !important; }
+#calendar-layers {
+  box-sizing: border-box;
+  max-width: 1100px;
+  margin: 18px auto;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #476775;
+  border-radius: 8px;
+}
+#calendar-layer-form { display: grid; gap: 10px; }
+#calendar-layer-wallet { box-sizing: border-box; min-width: 0; width: 100%; padding: 10px; }
+.layer-consent { display: flex; align-items: flex-start; gap: 8px; }
+.layer-consent input { flex-shrink: 0; margin-top: 4px; }
+#calendar-layer-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 12px; margin: 12px 0; }
+.calendar-layer-card { min-width: 0; border-left: 5px solid var(--layer-color); padding: 10px; background: #0a1820; }
+.calendar-layer-card label { display: flex; align-items: center; gap: 8px; color: var(--layer-color); overflow-wrap: anywhere; }
+.calendar-layer-card button { margin: 4px; }
+.calendar-layer-card p, #calendar-layer-detail p { overflow-wrap: anywhere; }
+.layer-address { font-family: monospace; }
+#calendar-layer-detail { padding: 12px; border: 1px solid #8bd5ff; }
+.fc .layer-candidate { background: transparent !important; border-width: 2px; border-style: solid; color: #fff !important; }
+.fc .layer-busy { color: #091018 !important; }
+.fc .layer-cancelled { background: transparent !important; border-style: dashed; opacity: .75; text-decoration: line-through; color: #fff !important; }
+.fc .layer-candidate .fc-event-main,
+.fc .layer-busy .fc-event-main,
+.fc .layer-cancelled .fc-event-main { overflow: hidden; overflow-wrap: anywhere; white-space: normal; }
+
 #calendar-wrapper {
   width: 100%;
   max-width: 1100px;

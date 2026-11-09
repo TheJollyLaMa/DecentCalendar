@@ -130,3 +130,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+.appointments-deployment-pending.json
+.booking-rewards-deployment-pending.json
+.reward-funding-journal.json
+.reward-funding-journal.tmp

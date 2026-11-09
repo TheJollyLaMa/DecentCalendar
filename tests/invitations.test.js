@@ -65,6 +65,8 @@ test('ICS is CRLF, escaped, UTF-8 folded and uses UTC across DST with stable reg
   assert.ok(!unfolded.includes('private=secret'));
   assert.ok(!unfolded.includes('ATTENDEE:'));
   assert.ok(unfolded.includes('does not join'));
+  assert.match(unfolded, /BEGIN:VALARM\r\nACTION:DISPLAY\r\nTRIGGER:-PT15M\r\n/);
+  assert.doesNotMatch(calendarICS({...slot,state:1},config),/VALARM|TRIGGER/);
   assert.ok(!calendarICS(slot, { ...config, registry: host }).includes(`UID:8453-${registry}`));
   assert.throws(() => calendarICS({ ...slot, end: slot.start }, config), /interval/);
 });
@@ -84,6 +86,7 @@ test('Google template shares the same UTC interval and strips invitation/private
   assert.equal(url.searchParams.get('text'), slot.subject);
   assert.ok(url.searchParams.get('details').includes('timezone: America/New_York'));
   assert.ok(!url.searchParams.get('details').includes(attendee));
+  assert.match(url.searchParams.get('details'),/15 minutes/);
 });
 
 test('share cancellation does not copy; unavailable sharing falls back explicitly; clipboard failure rejects', async () => {

@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const app = resolve(root, 'decent-calendar-vanilla');
 const runtime = [
   'index.html', 'decent.config.js',
-  'css/app.css', 'css/calendar.css',
+  'css/app.css', 'css/calendar.css', 'css/booking-gift.css',
   'assets/usdc.svg', 'assets/SecretPyramid.gif',
   'js/main.js', 'js/head-session.js', 'js/calendar-data.js', 'js/calendar-storage.js',
   'js/contract.js', 'js/events.js', 'js/payments.js', 'js/meetingRoom.js',
@@ -15,6 +15,9 @@ const runtime = [
   'js/booking-client.js', 'js/booking-ui.js', 'js/timezones.js', 'js/when-picker.js',
   'js/invitations.js', 'js/invitation-ui.js',
   'js/invitation-inbox.js',
+  'js/appointments.js', 'js/appointment-client.js', 'js/appointment-ui.js',
+  'js/calendar-layers.js', 'js/calendar-layer-ui.js', 'js/ui-info.js',
+  'js/booking-rewards.js', 'js/booking-reward-ui.js', 'js/supporter-art.js',
   'js/supporter.js', 'js/supporter-release.js',
   'vendor/decent-head/2.0.0',
 ];

@@ -1,6 +1,6 @@
 // Independently verified with DecentHead verifyOnChain at Base block 53545009.
 // Public evidence: https://github.com/TheJollyLaMa/DecentCalendar/releases/download/v0.1.0/supporter-minted.json
-// Sale reallocation verified at Base block 54969585; replacement listing 20.
+// Current sale-to-gift cutover: docs/deployments/base-dcal-reward-funding.json, block 54969585.
 export const SUPPORTER_RELEASE = Object.freeze({
   tag: 'v0.1.0',
   sourceCommit: '27dbbecffa89ca4091ebef3478ad0b1a6ddd69f8',
@@ -10,6 +10,7 @@ export const SUPPORTER_RELEASE = Object.freeze({
   nftContract: '0xe63EC9f8228720bAAC2fD528C0A6d06B3Dc5439B',
   escrow: '0x31b07b83e99A9bdF379bf40225b8A80d3804C89d',
   tokenId: '77',
+  metadataURI: 'ipfs://QmPqCy2g53t4BaffprtfjfM4L5imACB1nWZK63HyN9o3Tj',
   listingId: '20',
   mintTxHash: '0x5c53d1eacf93e7ec1696e5e0e5b1fccab27d42de59b7ffd91dedcf47f69fe07b',
   confirmations: 12,

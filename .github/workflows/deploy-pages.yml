@@ -22,9 +22,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
-      - run: npm test
       - run: npm ci --ignore-scripts
+      - run: npm test
       - run: npm run test:escrow
+      - run: node --test tests/appointments.test.mjs tests/booking-rewards.test.mjs tests/appointment-deployment.test.mjs tests/reward-funding.test.mjs
       - run: node scripts/build-pages.mjs
 
   deploy:

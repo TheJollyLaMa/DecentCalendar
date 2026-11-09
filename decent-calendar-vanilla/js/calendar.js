@@ -7,6 +7,18 @@ let myEventsVisible = true;
 let otherEventsVisible = true;
 let currentLookupAddress = '';
 const registrySlots = new Map();
+let appointmentSnapshots = [];
+let calendarLayerProjector = () => [];
+window.setCalendarLayerProjector = project => { calendarLayerProjector = project; refreshCalendar(); };
+window.getOwnCalendarEvidence = () => [
+  ...myEvents.map((event, index) => ({ ...event, id: event.id || `own-local:${index}` })),
+  ...registrySlots.values(), ...appointmentSnapshots,
+];
+window.setAppointmentSnapshots = events => { appointmentSnapshots = events; refreshCalendar(); };
+window.markAppointmentSnapshotsStale = () => {
+  appointmentSnapshots = appointmentSnapshots.map(event => ({ ...event, stale: true }));
+  refreshCalendar();
+};
 
 function showRegistrySlot(slot) {
   const asset = window.DCalAssets.bookingAsset(slot.asset);
@@ -92,14 +104,30 @@ function initCalendar() {
     windowResize: () => calendarInstance.setOption('height', calendarHeight()),
     events: getVisibleEvents(),
     eventClick: handleEventClick,
-    eventContent: info => window.renderSlotContent
+    eventContent: info => info.event.extendedProps.calendarLayer
+      ? { text: `${info.timeText} ${info.event.title}` }
+      : window.renderSlotContent
       ? window.renderSlotContent(info)
       : { text: `${info.timeText} ${info.event.title}` },
     eventClassNames: (info) => info.event.classNames || [],
+    eventDidMount: info => {
+      if (!info.event.extendedProps.calendarLayer) return;
+      info.el.tabIndex = 0;
+      info.el.setAttribute('role', 'button');
+      info.el.setAttribute('aria-label', `${info.event.title}; inspect public calendar record`);
+      info.el.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleEventClick(info);
+        }
+      });
+    },
     eventDataTransform: (eventData) => ({
       ...eventData,
       originalTitle: eventData.title,
-      title: eventData.registrySnapshot ? `${eventData.title} (chain snapshot - refresh to verify)` :
+      title: eventData.calendarLayer ? `${eventData.title} (${eventData.layerKind}${eventData.stale ? ' · STALE' : ''}${eventData.conflictIds?.length ? ' · known busy overlap' : ''})` :
+        eventData.appointmentSnapshot ? `${eventData.title} (${eventData.cancelled ? 'cancelled' : eventData.stale ? 'stale - refresh' : 'confirmed on Base'})` :
+        eventData.registrySnapshot ? `${eventData.title} (chain snapshot - refresh to verify)` :
         `${eventData.title} (${eventData.rateAmount ?? eventData.hourlyRate ?? 0} ${eventData.currency || 'POL'}/hr)`,
       backgroundColor: eventData.backgroundColor || undefined,
       borderColor: eventData.borderColor || undefined,
@@ -119,6 +147,8 @@ function getVisibleEvents() {
   if (myEventsVisible) visible.push(...myEvents);
   if (otherEventsVisible) visible.push(...otherEvents);
   visible.push(...registrySlots.values());
+  if (myEventsVisible) visible.push(...appointmentSnapshots);
+  visible.push(...calendarLayerProjector(window.getOwnCalendarEvidence()));
   return visible;
 }
 
@@ -148,6 +178,7 @@ function refreshCalendar() {
     calendarInstance.removeAllEventSources();
     calendarInstance.addEventSource(getVisibleEvents());
   }
+  window.refreshLayerEvidence?.();
 }
 
 /**
@@ -158,6 +189,7 @@ function clearCalendarEvents() {
   otherEvents = [];
   currentLookupAddress = '';
   registrySlots.clear();
+  appointmentSnapshots = [];
   refreshCalendarToggle();
   refreshCalendar();
 }
@@ -189,6 +221,17 @@ function handleEventClick(info) {
   const props = fcEvent.extendedProps;
   const classNames = fcEvent.classNames || props.classNames || [];
 
+  if (props.calendarLayer) {
+    window.openCalendarLayerEvent?.({
+      ...props, id: fcEvent.id, title: props.originalTitle || fcEvent.title,
+      start: fcEvent.start?.toISOString(), end: fcEvent.end?.toISOString(),
+    });
+    return;
+  }
+  if (props.appointmentSnapshot && window.DCalAppointments) {
+    window.DCalAppointments.openAppointment(props.appointmentId);
+    return;
+  }
   if (props.registrySnapshot && window.DCalBookings) {
     window.DCalBookings.open(props.registryId);
     return;
@@ -365,7 +408,7 @@ function refreshCalendarToggle() {
   toggle.innerHTML = `
     <label style="color:#00FF00;">
       <input type="checkbox" id="my-events-toggle" ${myEventsVisible ? 'checked' : ''} />
-      Your Calendar:
+      Your local drafts / appointments:
       <span class="calendar-shower-wallet-addr">${addr.slice(0, 6)}</span>
       <span class="calendar-shower-wallet-addr">${addr.slice(-4)}</span>
     </label>
