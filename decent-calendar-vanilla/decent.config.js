@@ -33,7 +33,7 @@ window.DECENT_CONFIG = {
   relatedDapps: [
     { symbol: '♫', label: 'DecentBusking', url: 'https://thejollylama.github.io/DecentBusking/' },
     { symbol: '✺', label: 'BigNuten', url: 'https://thejollylama.github.io/BigNuten_Vanilla/' },
-    { symbol: '❦', label: 'DecentCanopy', url: 'https://github.com/TheJollyLaMa/DecentCanopy' },
+    { symbol: '❦', label: 'DecentCanopy', url: 'https://thejollylama.github.io/DecentCanopy/' },
     { symbol: '⌘', label: 'Planning Office', url: 'https://a-decent-agency.github.io/?site=PVTI_lADODD7ovc4Bn91hzhELHuo' },
   ],
   tokenAddress: '',
