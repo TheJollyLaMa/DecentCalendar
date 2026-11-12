@@ -70,5 +70,7 @@ export function installSupporterCard(document = globalThis.document) {
   const dialog = document.querySelector('decent-header')?.shadowRoot
     ?.querySelector('about-modal')?.shadowRoot?.querySelector('dialog');
   if (!dialog) throw new Error('DCal About dialog is unavailable');
-  if (!dialog.querySelector('#dcal-supporter')) dialog.append(createSupporterCard(document));
+  if (!dialog.querySelector('#dcal-supporter')) {
+    (dialog.querySelector('#about-supporter-slot') || dialog).append(createSupporterCard(document));
+  }
 }

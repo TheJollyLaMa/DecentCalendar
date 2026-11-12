@@ -6,6 +6,7 @@ import { installSlotUI } from './slot-ui.js';
 import { installBookingUI } from './booking-ui.js';
 import { installInvitationInbox } from './invitation-inbox.js';
 import { installSupporterCard } from './supporter.js';
+import { installAbout } from './about.js';
 import { installAppointmentUI } from './appointment-ui.js';
 import { installCalendarLayers } from './calendar-layer-ui.js';
 import { installBookingRewards } from './booking-reward-ui.js';
@@ -25,6 +26,7 @@ window.DECENT_CONFIG.ipfsAdapter = createCalendarStorage({
   },
 });
 const { DecentHead } = await import('../vendor/decent-head/2.0.0/js/main.js');
+installAbout();
 installSupporterCard();
 const identity = installProfiles(DecentHead);
 window.DCalProfiles = identity.profiles;

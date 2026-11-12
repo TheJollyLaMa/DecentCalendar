@@ -16,7 +16,7 @@ test('Pages includes the active app and notices, not repository files or retired
       'vendor/decent-head/2.0.0/NOTICE', 'vendor/decent-head/2.0.0/js/main.js',
       'vendor/decent-head/2.0.0/js/vendor/ethers.LICENSE.md', 'js/calendar-storage.js',
       'js/booking-client.js', 'js/booking-ui.js',
-      'js/supporter.js', 'js/supporter-release.js',
+      'js/supporter.js', 'js/supporter-release.js', 'js/about.js',
       'css/booking-gift.css', 'js/appointments.js', 'js/appointment-client.js',
       'js/appointment-ui.js', 'js/calendar-layers.js', 'js/calendar-layer-ui.js',
       'js/ui-info.js', 'js/booking-rewards.js', 'js/booking-reward-ui.js', 'js/supporter-art.js',
