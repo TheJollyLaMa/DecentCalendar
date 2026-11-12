@@ -36,7 +36,7 @@ test('link tiles are https, open safely and include related dapps', () => {
     assert.match(a.attributes.href, /^https:\/\//);
     assert.equal(a.attributes.rel, 'noopener noreferrer');
   }
-  for (const expected of ['DecentBusking', 'BigNuten_Vanilla', 'github.com/TheJollyLaMa/DecentCalendar', 'decentcalendar.decentagency.eth']) {
+  for (const expected of ['thejollylama.github.io/DecentCanopy/', 'DecentBusking', 'BigNuten_Vanilla', 'github.com/TheJollyLaMa/DecentCalendar', 'decentcalendar.decentagency.eth']) {
     assert.ok(hrefs.some(href => href.includes(expected)), expected);
   }
   const unsafe = createAbout(document, { about: {}, links: [{ label: 'x', url: 'javascript:alert(1)' }, { label: 'y', url: 'http://example.test' }] });
