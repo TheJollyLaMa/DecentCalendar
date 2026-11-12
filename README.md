@@ -397,3 +397,14 @@ and 99 in VoyagerRewards (unchanged). Listings #7 and #15 are inactive.
 The mint identity and 1,000-copy edition cap are unchanged. Relisting receipt:
 `0x9ad44ecc749440ded05ea39f369c1e0ee55a6514bf227d36a7ebacb10c9f5723`.
 This checkout correction does not enable the booking-gift promotion.
+
+
+## Link previews
+
+Public entry pages include static Open Graph and Twitter large-image metadata,
+with an absolute HTTPS image URL. The 1200 x 630 JPEG at
+`decent-calendar-vanilla/assets/social-preview.jpg` previews this public website without a connected wallet.
+Keep the image in the deployed artifact when changing the build. After updating
+it, check the raw HTML and image response as a crawler; Discord and other services
+may cache earlier previews. ENS/IPFS snapshots need a separate site publication;
+metadata alone does not update an existing immutable snapshot.

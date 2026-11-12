@@ -7,7 +7,7 @@ const app = resolve(root, 'decent-calendar-vanilla');
 const runtime = [
   'index.html', 'decent.config.js',
   'css/app.css', 'css/calendar.css', 'css/booking-gift.css',
-  'assets/usdc.svg', 'assets/SecretPyramid.gif',
+  'assets/usdc.svg', 'assets/SecretPyramid.gif', 'assets/social-preview.jpg',
   'js/main.js', 'js/head-session.js', 'js/calendar-data.js', 'js/calendar-storage.js',
   'js/contract.js', 'js/events.js', 'js/payments.js', 'js/meetingRoom.js',
   'js/calendar.js', 'js/components/Calendar.js',
